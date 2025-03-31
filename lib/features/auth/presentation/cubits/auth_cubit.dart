@@ -16,10 +16,12 @@ class AuthCubit extends Cubit<AuthState> {
 
   AuthCubit({required this.authRepo}) : super(AuthInitial());
 
-  //check if user is already authenticated
+  // ✅ Correct getter
+  AppUser? get currentUser => _currentUser;
+
+  // Check if the user is already authenticated
   void checkAuth() async {
     final AppUser? user = await authRepo.getCurrentUser();
-
     if (user != null) {
       _currentUser = user;
       emit(Authenticated(user));
@@ -28,9 +30,7 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  //get current user
-  AppUser? get currentUser => currentUser;
-  //login with email + pw
+  // Login with email + password
   Future<void> login(String email, String pw) async {
     try {
       emit(AuthLoading());
@@ -46,8 +46,8 @@ class AuthCubit extends Cubit<AuthState> {
       emit(Unauthenticated());
     }
   }
-  //register with email + pw'
 
+  // Register with email + password
   Future<void> register(String name, String email, String pw) async {
     try {
       emit(AuthLoading());
@@ -64,9 +64,10 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  //logout
+  // Logout
   Future<void> logout() async {
-    authRepo.logout();
+    await authRepo.logout();
+    _currentUser = null; //Clear user after logout
     emit(Unauthenticated());
   }
 }

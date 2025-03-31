@@ -17,22 +17,18 @@ class MyDrawer extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(
           children: [
-            const SizedBox(height: 60), // Top spacing
+            const SizedBox(height: 20), // Top spacing
             // Wrap only the icon with SafeArea
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
+              padding: const EdgeInsets.symmetric(vertical: 15.0),
               child: SafeArea(
-                child: Icon(
-                  Icons.person,
-                  size: 90,
-                  color: Theme.of(context).colorScheme.inversePrimary,
-                ),
+                child: Image.asset("assets/logo_color.png", height: 200),
               ),
             ),
 
             // Divider line
             Divider(color: Theme.of(context).colorScheme.tertiary),
-            const SizedBox(height: 30), // Spacing after the icon
+            const SizedBox(height: 20), // Spacing after the icon
             // Drawer tiles
             MyDrawerTile(
               title: "H O M E",
@@ -53,13 +49,21 @@ class MyDrawer extends StatelessWidget {
               title: "P R O F I L E",
               svgIconPath: "assets/user.svg",
               onTap: () {
+                //pop menu
                 Navigator.of(context).pop();
+
+                //get current uid
+                final user = context.read<AuthCubit>().currentUser;
+                String? uid = user!.uid;
+
+                //navigate to profile page
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder:
-                        (context) =>
-                            ProfilePage(), // Ensure ProfilePage is implemented
+                        (context) => ProfilePage(
+                          uid: uid,
+                        ), // Ensure ProfilePage is implemented
                   ),
                 );
               },
