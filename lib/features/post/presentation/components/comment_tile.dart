@@ -38,12 +38,20 @@ class _CommentTileState extends State<CommentTile> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text("Delete Post?"),
+            title: Text(
+              "Delete Post?",
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
             actions: [
               //cancel button
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text("Cancel"),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
 
               //delete button
@@ -55,7 +63,12 @@ class _CommentTileState extends State<CommentTile> {
                   );
                   Navigator.of(context).pop();
                 },
-                child: const Text("Delete"),
+                child: Text(
+                  "Delete",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ],
           ),

@@ -70,8 +70,6 @@ class PostCubit extends Cubit<PostState> {
   Future<void> addComment(String postId, Comment comment) async {
     try {
       await postRepo.addComment(postId, comment);
-
-      await fetchAllPosts();
     } catch (e) {
       emit(PostError("Failed to add comment: $e"));
     }
@@ -81,7 +79,6 @@ class PostCubit extends Cubit<PostState> {
   Future<void> deleteComment(String postId, String commentId) async {
     try {
       await postRepo.deleteComment(postId, commentId);
-      await fetchAllPosts();
     } catch (e) {
       emit(PostError("Error deleting comment: $e"));
     }

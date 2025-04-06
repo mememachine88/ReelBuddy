@@ -2,21 +2,24 @@ class AppUser {
   final String uid;
   final String email;
   final String name;
+  final String username; // New field for username
   final DateTime? createdAt; // Optional field for timestamp
 
   AppUser({
     required this.uid,
     required this.email,
     required this.name,
+    required this.username, // Add username to constructor
     this.createdAt,
   });
 
-  // Convert AppUser -> JSON
+  // Convert AppUser  -> JSON
   Map<String, dynamic> toJson() {
     return {
       "uid": uid,
       "email": email,
       "name": name,
+      "username": username, // Include username in JSON
       "createdAt":
           createdAt?.toIso8601String(), // Convert DateTime to string for JSON
     };
@@ -28,6 +31,7 @@ class AppUser {
       uid: jsonUser["uid"],
       email: jsonUser["email"],
       name: jsonUser["name"],
+      username: jsonUser["username"], // Parse username from JSON
       createdAt:
           jsonUser["createdAt"] != null
               ? DateTime.parse(jsonUser["createdAt"])

@@ -23,7 +23,7 @@ class MyDrawerTile extends StatelessWidget {
         color:
             Theme.of(
               context,
-            ).colorScheme.inversePrimary, // Apply theme color to SVG icon
+            ).colorScheme.tertiary, // Apply theme color to SVG icon
       ),
       title: Text(
         title,

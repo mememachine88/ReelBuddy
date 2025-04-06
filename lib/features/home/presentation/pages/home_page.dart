@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                     builder: (context) => const UploadPostPage(),
                   ),
                 ),
-            icon: const Icon(Icons.add),
+            icon: Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
           ),
         ],
         centerTitle: true,

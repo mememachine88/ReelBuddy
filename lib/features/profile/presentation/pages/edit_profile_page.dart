@@ -182,6 +182,19 @@ class _EditProfilePage extends State<EditProfilePage> {
               obscureText: false,
             ),
           ),
+          Text(
+            "Name",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            child: MyTextField(
+              controller: bioTextController,
+              hintText: "Name",
+              obscureText: false,
+            ),
+          ),
         ],
       ),
     );

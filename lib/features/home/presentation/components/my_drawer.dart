@@ -12,7 +12,7 @@ class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Theme.of(context).colorScheme.secondary,
+      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: Column(

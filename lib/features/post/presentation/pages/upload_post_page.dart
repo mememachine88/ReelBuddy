@@ -69,7 +69,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
     final newPost = Post(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       uid: currentUser!.uid,
-      username: currentUser!.name,
+      username: currentUser!.username,
       text: textController.text,
       imageUrl: '',
       timestamp: DateTime.now(),

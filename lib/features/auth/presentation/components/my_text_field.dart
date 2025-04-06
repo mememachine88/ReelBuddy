@@ -18,21 +18,28 @@ class MyTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       decoration: InputDecoration(
-        // Border when unselected
+        // Border when unselected (muted teal for subtle contrast)
         enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.tertiary),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.secondary,
+          ),
           borderRadius: BorderRadius.circular(12),
         ),
-        // Border when selected
+        // Border when selected (dark blue-gray for better emphasis)
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.surface),
           borderRadius: BorderRadius.circular(12),
         ),
         hintText: hintText,
-        hintStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
-        fillColor: Theme.of(context).colorScheme.inversePrimary,
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.inversePrimary,
+        ), // Soft teal for subtle hints
+        fillColor:
+            Theme.of(
+              context,
+            ).colorScheme.primary, // Light beige for input background
         filled: true,
-      ), // Correctly closed the InputDecoration
-    ); // Correctly closed the TextField widget
+      ),
+    );
   }
 }

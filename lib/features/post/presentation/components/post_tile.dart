@@ -11,6 +11,8 @@ import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/post/presentation/cubits/post_states.dart';
 import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:fyp/features/profile/presentation/pages/profile_page.dart';
+import 'package:intl/intl.dart';
 
 class PostTile extends StatefulWidget {
   final Post post;
@@ -68,10 +70,8 @@ class _PostTileState extends State<PostTile> {
    */
   //user taps like button
   void toggleLikePost() {
-    //current like status
     final isLiked = widget.post.likes.contains(currentUser!.uid);
 
-    //make it more smooth by optimistically update and like
     setState(() {
       if (isLiked) {
         widget.post.likes.remove(currentUser!.uid);
@@ -80,11 +80,11 @@ class _PostTileState extends State<PostTile> {
       }
     });
 
-    //update Like
+    // Update the backend
     postCubit.toggleLikePost(widget.post.id, currentUser!.uid).catchError((
       error,
     ) {
-      //if there is error revert changes
+      // Revert changes if there is an error
       setState(() {
         if (isLiked) {
           widget.post.likes.add(currentUser!.uid);
@@ -139,18 +139,38 @@ class _PostTileState extends State<PostTile> {
 
   //create new comment
   void addComment() {
+    final text = commentTextController.text.trim();
+
+    if (text.isEmpty) return;
+
     final newComment = Comment(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       postId: widget.post.id,
       uid: currentUser!.uid,
-      username: widget.post.username,
-      text: commentTextController.text,
+      username: currentUser!.username,
+      text: text,
       timestamp: DateTime.now(),
     );
-    //add using cubit
-    if (commentTextController.text.isNotEmpty) {
-      postCubit.addComment(widget.post.id, newComment);
-    }
+    print("[Debug] username: $currentUser");
+
+    // Optimistically update the UI
+    setState(() {
+      widget.post.comments.add(newComment);
+    });
+
+    // Clear the input
+    commentTextController.clear();
+
+    // Call cubit once and handle rollback
+    context.read<PostCubit>().addComment(widget.post.id, newComment).catchError(
+      (error) {
+        setState(() {
+          widget.post.comments.removeWhere(
+            (comment) => comment.id == newComment.id,
+          );
+        });
+      },
+    );
   }
 
   @override
@@ -165,12 +185,20 @@ class _PostTileState extends State<PostTile> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text("Delete Post?"),
+            title: Text(
+              "Delete Post?",
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
             actions: [
               //cancel
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text("Cancel"),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
 
               //delete
@@ -179,7 +207,12 @@ class _PostTileState extends State<PostTile> {
                   widget.onDeletePressed!();
                   Navigator.of(context).pop();
                 },
-                child: const Text("Delete"),
+                child: Text(
+                  "Delete",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               ),
             ],
           ),
@@ -189,53 +222,76 @@ class _PostTileState extends State<PostTile> {
   //BUILD UI
   @override
   Widget build(BuildContext context) {
+    // Format the date to "day month (in English) year"
+    String formattedDate = DateFormat(
+      'd MMMM yyyy',
+    ).format(widget.post.timestamp);
     return Container(
-      color: Theme.of(context).colorScheme.secondary,
       child: Column(
         children: [
           //Top section
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                //profile picture
-                postUser?.profileImageUrl != null
-                    ? CachedNetworkImage(
-                      imageUrl: postUser!.profileImageUrl,
-                      errorWidget:
-                          (context, url, error) => const Icon(Icons.person),
-                      imageBuilder:
-                          (context, imageProvider) => Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                    )
-                    : const Icon(Icons.person),
-                //name
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text(
-                    widget.post.username,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+          GestureDetector(
+            onTap:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(uid: widget.post.uid),
                   ),
                 ),
-
-                const Spacer(),
-                //delete button
-                if (isOwnPost)
-                  IconButton(
-                    onPressed: showOptions,
-                    icon: const Icon(Icons.delete),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  //profile picture
+                  postUser?.profileImageUrl != null
+                      ? CachedNetworkImage(
+                        imageUrl: postUser!.profileImageUrl,
+                        errorWidget:
+                            (context, url, error) => Icon(
+                              Icons.person,
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                        imageBuilder:
+                            (context, imageProvider) => Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                image: DecorationImage(
+                                  image: imageProvider,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                      )
+                      : const Icon(Icons.person),
+                  //name
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Text(
+                      widget.post.username,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 20,
+                      ),
+                    ),
                   ),
-              ],
+
+                  const Spacer(),
+                  //delete button
+                  if (isOwnPost)
+                    IconButton(
+                      onPressed: showOptions,
+                      icon: Icon(
+                        Icons.delete,
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
           //image
@@ -262,6 +318,12 @@ class _PostTileState extends State<PostTile> {
                           widget.post.likes.contains(currentUser!.uid)
                               ? Icons.favorite
                               : Icons.favorite_border,
+                          color:
+                              widget.post.likes.contains(currentUser!.uid)
+                                  ? Colors
+                                      .red // Change to red when liked
+                                  : Colors
+                                      .black, // Default color when not liked
                         ),
                       ),
                       Text(widget.post.likes.length.toString()),
@@ -279,7 +341,7 @@ class _PostTileState extends State<PostTile> {
                 const Spacer(),
 
                 //timestamp
-                Text(widget.post.timestamp.toString()),
+                Text(formattedDate),
               ],
             ),
           ),
@@ -335,6 +397,7 @@ class _PostTileState extends State<PostTile> {
               }
             },
           ),
+          SizedBox(height: 10),
         ],
       ),
     );

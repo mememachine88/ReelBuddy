@@ -26,6 +26,7 @@ class FirebaseAuthRepo implements AuthRepo {
         uid: userCredential.user!.uid,
         email: email,
         name: userDoc["name"],
+        username: userDoc["username"],
       );
 
       // Return user
@@ -36,10 +37,12 @@ class FirebaseAuthRepo implements AuthRepo {
   }
 
   @override
+  @override
   Future<AppUser?> registerWithEmailPassword(
     String name,
     String email,
     String password,
+    String username,
   ) async {
     try {
       // Attempt to sign up
@@ -51,6 +54,7 @@ class FirebaseAuthRepo implements AuthRepo {
         'uid': userCredential.user!.uid,
         'email': email,
         'name': name,
+        'username': username,
         'createdAt': FieldValue.serverTimestamp(), // Timestamp for registration
       });
 
@@ -59,11 +63,24 @@ class FirebaseAuthRepo implements AuthRepo {
         uid: userCredential.user!.uid,
         email: email,
         name: name,
+        username: username,
       );
 
       // Return user
       return user;
+    } on FirebaseAuthException catch (e) {
+      // Handle specific FirebaseAuth exceptions
+      if (e.code == 'email-already-in-use') {
+        // Handle email already in use
+        throw Exception(
+          "The email address is already in use by another account.",
+        );
+      } else {
+        // Handle other errors
+        throw Exception("Sign Up Failed: ${e.message}");
+      }
     } catch (e) {
+      // Handle any other exceptions
       throw Exception("Sign Up Failed: $e");
     }
   }
@@ -97,6 +114,7 @@ class FirebaseAuthRepo implements AuthRepo {
       uid: firebaseUser.uid,
       email: firebaseUser.email!,
       name: userDoc["name"],
+      username: userDoc["username"],
     );
   }
 }

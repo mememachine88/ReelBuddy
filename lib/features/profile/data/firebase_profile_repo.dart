@@ -16,12 +16,18 @@ class FirebaseProfileRepo implements ProfileRepo {
         final userData = userDoc.data();
 
         if (userData != null) {
+          //fetch followers and following
+          final followers = List<String>.from(userData["followers"] ?? []);
+          final following = List<String>.from(userData["following"] ?? []);
           return ProfileUser(
             uid: uid,
             email: userData['email'],
             name: userData['name'],
             bio: userData['bio'] ?? "",
+            username: userData["username"],
             profileImageUrl: userData['profileImageUrl'].toString(),
+            following: following,
+            followers: followers,
           );
         }
       }
@@ -42,6 +48,47 @@ class FirebaseProfileRepo implements ProfileRepo {
       );
     } catch (e) {
       throw Exception(e);
+    }
+  }
+
+  @override
+  Future<void> toggleFollow(String currentUid, String targetUid) async {
+    try {
+      final currentUserDoc =
+          await firebaseFirestore.collection('users').doc(currentUid).get();
+      final targetUserDoc =
+          await firebaseFirestore.collection('users').doc(targetUid).get();
+
+      if (currentUserDoc.exists && targetUserDoc.exists) {
+        final currentUserData = currentUserDoc.data();
+        final List<String> currentFollowing = List<String>.from(
+          currentUserData?['following'] ?? [],
+        );
+
+        final isFollowing = currentFollowing.contains(targetUid);
+
+        if (isFollowing) {
+          // Unfollow
+          await firebaseFirestore.collection('users').doc(currentUid).update({
+            "following": FieldValue.arrayRemove([targetUid]),
+          });
+
+          await firebaseFirestore.collection("users").doc(targetUid).update({
+            "followers": FieldValue.arrayRemove([currentUid]),
+          });
+        } else {
+          // Follow
+          await firebaseFirestore.collection('users').doc(currentUid).update({
+            "following": FieldValue.arrayUnion([targetUid]),
+          });
+
+          await firebaseFirestore.collection('users').doc(targetUid).update({
+            "followers": FieldValue.arrayUnion([currentUid]), // ✅ fixed here
+          });
+        }
+      }
+    } catch (e) {
+      print('toggleFollow error: $e');
     }
   }
 }

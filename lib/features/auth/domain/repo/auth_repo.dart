@@ -11,6 +11,7 @@ abstract class AuthRepo {
     String name,
     String email,
     String password,
+    String username,
   );
   Future<void> logout();
   Future<AppUser?> getCurrentUser();

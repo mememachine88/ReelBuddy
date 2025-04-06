@@ -1,7 +1,3 @@
-/*
-Login Page
- */
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,17 +21,11 @@ class _LoginPageState extends State<LoginPage> {
 
   //Login Button Pressed
   void login() {
-    //prepare email and pw
     final String email = emailController.text;
     final String pw = pwController.text;
-
-    //auth cubit
     final authCubit = context.read<AuthCubit>();
 
-    //ensure email and pw not empty
-
     if (email.isNotEmpty && pw.isNotEmpty) {
-      //login
       authCubit.login(email, pw);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,8 +41,6 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  //Build UI
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,13 +52,13 @@ class _LoginPageState extends State<LoginPage> {
           // Foreground Content
           SafeArea(
             child: Center(
-              child: Padding(
+              child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // App Logo
-                    Image.asset("assets/logo_color.png", height: 300),
+                    Image.asset("assets/logo_color.png", height: 200),
                     const SizedBox(height: 25),
 
                     // Welcome Back Message
@@ -92,6 +80,7 @@ class _LoginPageState extends State<LoginPage> {
                       hintText: "Email",
                       obscureText: false,
                     ),
+
                     const SizedBox(height: 25),
 
                     // Password TextField
@@ -111,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                       text: TextSpan(
                         text: "Not a member? ",
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.inversePrimary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                         children: [
                           TextSpan(
@@ -122,9 +111,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             recognizer:
                                 TapGestureRecognizer()
-                                  ..onTap =
-                                      widget
-                                          .togglePages, // Fixed the gesture recognizer
+                                  ..onTap = widget.togglePages,
                           ),
                         ],
                       ),
