@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 import 'package:fyp/features/profile/domain/repos/profile_repo.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseProfileRepo implements ProfileRepo {
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
@@ -24,6 +25,7 @@ class FirebaseProfileRepo implements ProfileRepo {
             email: userData['email'],
             name: userData['name'],
             bio: userData['bio'] ?? "",
+            gender: userData["gender"] ?? "",
             username: userData["username"],
             profileImageUrl: userData['profileImageUrl'].toString(),
             following: following,
@@ -40,15 +42,19 @@ class FirebaseProfileRepo implements ProfileRepo {
   @override
   Future<void> updateProfile(ProfileUser updateProfile) async {
     try {
-      await firebaseFirestore.collection("users").doc(updateProfile.uid).update(
-        {
-          "bio": updateProfile.bio,
-          "profileImageUrl": updateProfile.profileImageUrl,
-        },
-      );
+      await firebaseFirestore
+          .collection("users")
+          .doc(updateProfile.uid)
+          .update({
+            "bio": updateProfile.bio,
+            "profileImageUrl": updateProfile.profileImageUrl,
+            "gender": updateProfile.gender,
+            "name": updateProfile.name,
+          });
     } catch (e) {
       throw Exception(e);
     }
+    print("Updated gender: ${updateProfile.gender}");
   }
 
   @override
@@ -89,6 +95,16 @@ class FirebaseProfileRepo implements ProfileRepo {
       }
     } catch (e) {
       print('toggleFollow error: $e');
+    }
+  }
+
+  // Add this method
+  Future<void> updatePassword(String newPassword) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await user.updatePassword(newPassword);
+    } else {
+      throw Exception("User not authenticated.");
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,6 +57,8 @@ class _PostTileState extends State<PostTile> {
 
   void fetchPostUser() async {
     final fetchedUser = await profileCubit.getUserProfile(widget.post.uid);
+    if (!mounted) return; // prevent setState on disposed widget
+
     if (fetchedUser != null) {
       setState(() {
         postUser = fetchedUser;
@@ -110,7 +113,11 @@ class _PostTileState extends State<PostTile> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text("Add a new comment"),
+            title: Text(
+              "Add a new comment",
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             content: MyTextField(
               controller: commentTextController,
               hintText: "Add a comment",
@@ -270,13 +277,45 @@ class _PostTileState extends State<PostTile> {
                   //name
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                    child: Text(
-                      widget.post.username,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                        fontSize: 20,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Username
+                        Text(
+                          widget.post.username,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        // Location with icon
+                        if (widget.post.location != null &&
+                            widget.post.location!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  CupertinoIcons.location_solid,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  widget.post.location!,
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
                     ),
                   ),
 
@@ -316,14 +355,15 @@ class _PostTileState extends State<PostTile> {
                         onTap: toggleLikePost,
                         child: Icon(
                           widget.post.likes.contains(currentUser!.uid)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                              ? CupertinoIcons.heart_fill
+                              : CupertinoIcons.heart,
                           color:
                               widget.post.likes.contains(currentUser!.uid)
                                   ? Colors
                                       .red // Change to red when liked
-                                  : Colors
-                                      .black, // Default color when not liked
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary, // Default color when not liked
                         ),
                       ),
                       Text(widget.post.likes.length.toString()),
@@ -334,7 +374,10 @@ class _PostTileState extends State<PostTile> {
                 //comment button
                 GestureDetector(
                   onTap: openNewCommentBox,
-                  child: Icon(Icons.comment),
+                  child: Icon(
+                    CupertinoIcons.chat_bubble,
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
                 ),
 
                 Text(widget.post.comments.length.toString()),

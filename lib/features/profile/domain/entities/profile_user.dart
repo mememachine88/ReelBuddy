@@ -6,6 +6,7 @@ class ProfileUser extends AppUser {
   final String profileImageUrl;
   final List<String> followers;
   final List<String> following;
+  final String gender;
 
   ProfileUser({
     required super.uid,
@@ -16,12 +17,14 @@ class ProfileUser extends AppUser {
     required this.profileImageUrl,
     required this.followers,
     required this.following,
+    required this.gender,
   });
 
   //method to update profile
   ProfileUser copyWith({
     String? bio,
     String? profileImageUrl,
+    String? gender,
     List<String>? newFollowers,
     List<String>? newFollowing,
   }) {
@@ -30,6 +33,7 @@ class ProfileUser extends AppUser {
       email: email,
       name: name,
       username: username,
+      gender: gender ?? this.gender,
       bio: bio ?? this.bio,
       profileImageUrl:
           profileImageUrl ??
@@ -40,6 +44,7 @@ class ProfileUser extends AppUser {
   }
 
   // convert profile user to json
+  @override
   Map<String, dynamic> toJson() {
     return {
       "uid": uid,
@@ -50,6 +55,7 @@ class ProfileUser extends AppUser {
       "profileImageUrl": profileImageUrl,
       "followers": followers,
       "following": following,
+      "gender": gender,
     };
   }
 
@@ -61,6 +67,7 @@ class ProfileUser extends AppUser {
       name: json["name"],
       username: json["username"],
       bio: json["bio"] ?? "",
+      gender: json["gender"] ?? "",
       profileImageUrl: json["profileImageUrl"] ?? "",
       followers: List<String>.from(json["followers"] ?? []),
       following: List<String>.from(json["following"] ?? []),

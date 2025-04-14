@@ -1,7 +1,8 @@
 import 'dart:io';
-
+import 'package:fyp/features/profile/presentation/components/location_picker.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +23,8 @@ class UploadPostPage extends StatefulWidget {
 class _UploadPostPageState extends State<UploadPostPage> {
   // image picker
   PlatformFile? imagePickedFile;
+  String? selectedLocation;
+  bool shareLocation = false;
 
   //text controller ->caption
   final textController = TextEditingController();
@@ -75,6 +78,7 @@ class _UploadPostPageState extends State<UploadPostPage> {
       timestamp: DateTime.now(),
       likes: [],
       comments: [],
+      location: selectedLocation,
     );
 
     // 🔹 Get PostCubit and call upload function
@@ -116,39 +120,124 @@ class _UploadPostPageState extends State<UploadPostPage> {
   //
 
   //BUild upload page
-
   Widget buildUploadPage() {
     return Scaffold(
-      //APP BAR
+      // APP BAR
       appBar: AppBar(
-        title: const Text("Create Post"),
+        title: Text(
+          "Create Post",
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
         centerTitle: true,
         actions: [
-          //upload button
           IconButton(onPressed: uploadPost, icon: const Icon(Icons.add)),
         ],
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
       ),
 
-      //Body
-      body: Center(
+      // Body
+      body: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            //image preview
-            if (imagePickedFile != null)
-              Image.file(File(imagePickedFile!.path!)),
+            // Image preview or placeholder
+            SizedBox(height: 20),
+            Stack(
+              children: [
+                // Image area
+                GestureDetector(
+                  onTap: pickImage,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.0),
+                    child: Container(
+                      width: 280,
+                      height: 360,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondary,
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      child:
+                          imagePickedFile != null
+                              ? Image.file(
+                                File(imagePickedFile!.path!),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                              )
+                              : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.photo,
+                                    size: 60,
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.inversePrimary,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Tap to select image',
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.inversePrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                    ),
+                  ),
+                ),
 
-            //pick image button
-            MaterialButton(
-              onPressed: pickImage,
-              color: Colors.blue,
-              child: const Text("Pick Image"),
+                // ✅ Only show the floating icon if image is selected
+                if (imagePickedFile != null)
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          CupertinoIcons
+                              .photo_on_rectangle, // 👈 You can change this line
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
+                        ),
+                        tooltip: 'Change photo',
+                        onPressed: pickImage,
+                      ),
+                    ),
+                  ),
+              ],
             ),
 
-            //caption text box
-            MyTextField(
-              controller: textController,
-              hintText: "Insert Caption Here",
-              obscureText: false,
+            LocationSelector(
+              onLocationPicked: (name, lat, lng) {
+                setState(() {
+                  selectedLocation = name;
+                });
+              },
+            ),
+
+            SizedBox(height: 20),
+            // Caption text box
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: MyTextField(
+                controller: textController,
+                hintText: "Insert Caption Here",
+                obscureText: false,
+              ),
             ),
           ],
         ),

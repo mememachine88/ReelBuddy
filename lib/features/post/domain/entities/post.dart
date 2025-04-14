@@ -10,6 +10,7 @@ class Post {
   final DateTime timestamp;
   final List<String> likes; //store uid for people liking this post
   final List<Comment> comments;
+  final String? location;
   Post({
     required this.id,
     required this.uid,
@@ -19,6 +20,7 @@ class Post {
     required this.timestamp,
     required this.likes,
     required this.comments,
+    required this.location,
   });
 
   Post copyWith({String? imageUrl}) {
@@ -31,6 +33,7 @@ class Post {
       timestamp: timestamp,
       likes: likes,
       comments: comments,
+      location: location,
     );
   }
 
@@ -45,6 +48,8 @@ class Post {
       "imageUrl": imageUrl,
       "timestamp": Timestamp.fromDate(timestamp),
       "comments": comments.map((comment) => comment.toJson()).toList(),
+      "location": location ?? location,
+      "likes": likes,
     };
   }
 
@@ -67,6 +72,7 @@ class Post {
       timestamp: (json["timestamp"] as Timestamp).toDate(),
       likes: List<String>.from(json["likes"] ?? []),
       comments: comments,
+      location: json["location"],
     );
   }
 }

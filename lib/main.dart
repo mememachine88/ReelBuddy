@@ -1,21 +1,42 @@
+import 'dart:io';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // Required for Firebase initialization
+import 'package:firebase_core/firebase_core.dart';
 import 'package:fyp/app.dart';
-import 'package:fyp/features/auth/presentation/pages/login_page.dart';
-import 'package:fyp/features/auth/presentation/pages/register_page.dart';
 import 'package:fyp/config/firebase_options.dart';
-import 'package:fyp/themes/light_mode.dart';
-import 'package:fyp/features/auth/presentation/pages/auth_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize Firebase
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseAppCheck.instance.activate(
-    // Required for Web
-    androidProvider: AndroidProvider.playIntegrity,
+  final file = File('.env');
+  final exists = await file.exists();
+
+  print('File exists: $exists');
+
+  if (exists) {
+    final content = await file.readAsString();
+    print('File content:\n$content');
+  }
+
+  try {
+    await dotenv.load(fileName: '.env');
+    print("✔ .env loaded successfully");
+    print("GOOGLE_API_KEY: ${dotenv.env['GOOGLE_API_KEY']}");
+  } catch (e) {
+    print("❌ Failed to load .env: $e");
+  }
+
+  // Step 2: Initialize Firebase
+  await Firebase.initializeApp(
+    name: 'final-year-project-6936a',
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  //  Step 3: Activate App Check
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
+  );
+
+  //  Step 4: Run the app
   runApp(MyApp());
 }

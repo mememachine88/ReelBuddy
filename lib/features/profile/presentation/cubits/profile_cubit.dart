@@ -39,6 +39,8 @@ class ProfileCubit extends Cubit<ProfileState> {
   Future<void> updateProfile({
     required String uid,
     String? newBio,
+    String? newName,
+    String? newGender,
     String? imageMobilePath,
   }) async {
     emit(ProfileLoading());
@@ -68,9 +70,6 @@ class ProfileCubit extends Cubit<ProfileState> {
         profileImageUrl:
             imageDownloadUrl, // Keep old image if new image is not uploaded
       );
-
-      // Update in repository
-      await profileRepo.updateProfile(updatedProfile);
 
       // Emit the updated profile
       emit(ProfileLoaded(updatedProfile));

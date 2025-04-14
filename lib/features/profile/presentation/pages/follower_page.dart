@@ -22,6 +22,13 @@ class FollowerPage extends StatelessWidget {
       child: Scaffold(
         // AppBar
         appBar: AppBar(
+          toolbarHeight: 25,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(15),
+              bottomRight: Radius.circular(15),
+            ),
+          ),
           bottom: TabBar(
             // Set the colors here
             labelColor: Theme.of(context).colorScheme.tertiary,

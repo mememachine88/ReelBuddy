@@ -175,107 +175,92 @@ class _RegisterPageState extends State<RegisterPage> {
         // Set background color to secondary
         backgroundColor: Theme.of(context).colorScheme.secondary,
         body: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // App Logo
-                  Image.asset("assets/logo_color.png", height: 250),
-                  const SizedBox(height: 20),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(height: 20),
+                Image.asset("assets/logo_color.png", height: 250),
+                const SizedBox(height: 20),
 
-                  // Welcome Message
-                  Text(
-                    "Let's create an account for you",
+                // Rest of your widgets...
+                Text(
+                  "Let's create an account for you",
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 25),
+
+                MyTextField(
+                  controller: nameController,
+                  hintText: "Name",
+                  obscureText: false,
+                ),
+                const SizedBox(height: 15),
+
+                Padding(
+                  padding: const EdgeInsets.only(right: 55),
+                  child: Text(
+                    "* Note username cannot be changed once chosen",
                     style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  const SizedBox(height: 25),
+                ),
+                MyTextField(
+                  controller: usernameController,
+                  hintText: "Username",
+                  obscureText: false,
+                ),
 
-                  // Name TextField
-                  MyTextField(
-                    controller: nameController,
-                    hintText: "Name",
-                    obscureText: false,
-                  ),
+                // Continue with the rest (email, password, etc.)
+                const SizedBox(height: 25),
+                MyTextField(
+                  controller: emailController,
+                  hintText: "Email",
+                  obscureText: false,
+                ),
+                const SizedBox(height: 25),
+                MyTextField(
+                  controller: pwController,
+                  hintText: "Password",
+                  obscureText: true,
+                ),
+                const SizedBox(height: 25),
+                MyTextField(
+                  controller: confirmPwController,
+                  hintText: "Confirm Password",
+                  obscureText: true,
+                ),
+                const SizedBox(height: 25),
 
-                  const SizedBox(height: 15),
+                MyButton(onTap: register, text: "Register"),
+                const SizedBox(height: 25),
 
-                  Padding(
-                    padding: const EdgeInsets.only(right: 55),
-                    child: Text(
-                      "* Note username cannot be changed once chosen",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                RichText(
+                  text: TextSpan(
+                    text: "Already a member? ",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
                     ),
-                  ),
-                  // Username TextField
-                  MyTextField(
-                    controller: usernameController,
-                    hintText: "Username",
-                    obscureText: false,
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // Email TextField
-                  MyTextField(
-                    controller: emailController,
-                    hintText: "Email",
-                    obscureText: false,
-                  ),
-                  const SizedBox(height: 25),
-
-                  // Password TextField
-                  MyTextField(
-                    controller: pwController,
-                    hintText: "Password",
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 25),
-
-                  // Confirm Password TextField
-                  MyTextField(
-                    controller: confirmPwController,
-                    hintText: "Confirm Password",
-                    obscureText: true,
-                  ),
-                  const SizedBox(height: 25),
-
-                  // Register Button
-                  MyButton(onTap: register, text: "Register"),
-                  const SizedBox(height: 25),
-
-                  // Already a Member? Link
-                  RichText(
-                    text: TextSpan(
-                      text: "Already a member? ",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: "Login now",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          recognizer:
-                              TapGestureRecognizer()
-                                ..onTap =
-                                    widget
-                                        .togglePages, // Fixed the gesture recognizer
+                    children: [
+                      TextSpan(
+                        text: "Login now",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    ),
+                        recognizer:
+                            TapGestureRecognizer()..onTap = widget.togglePages,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

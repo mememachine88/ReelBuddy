@@ -34,7 +34,7 @@ class ProfileStats extends StatelessWidget {
         children: [
           //posts
           SizedBox(
-            width: 100,
+            width: 80,
             child: Column(
               children: [
                 Text(
@@ -57,7 +57,7 @@ class ProfileStats extends StatelessWidget {
           ),
           //followers
           SizedBox(
-            width: 100,
+            width: 80,
             child: Column(
               children: [
                 Text(
@@ -81,7 +81,7 @@ class ProfileStats extends StatelessWidget {
 
           //following
           SizedBox(
-            width: 100,
+            width: 80,
             child: Column(
               children: [
                 Text(
