@@ -6,6 +6,8 @@ import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_states.dart';
 import 'package:fyp/features/home/cubit/navigation_cubit.dart';
 import 'package:fyp/features/home/presentation/pages/main_navigation_page.dart';
+import 'package:fyp/features/maps/domain/services/map_service.dart';
+import 'package:fyp/features/maps/presentation/cubit/map_cubit.dart';
 import 'package:fyp/features/post/data/firebase_post_repo.dart';
 import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/profile/data/firebase_profile_repo.dart';
@@ -83,6 +85,9 @@ class MyApp extends StatelessWidget {
 
         //navigation cubit
         BlocProvider<NavigationCubit>(create: (_) => NavigationCubit()),
+
+        //map cubit
+        BlocProvider(create: (_) => MapCubit(MapService())),
       ],
       //main app widget
       child: BlocBuilder<ThemeCubit, ThemeData>(
@@ -97,7 +102,7 @@ class MyApp extends StatelessWidget {
                     return const AuthPage();
                   }
                   if (authState is Authenticated) {
-                    return const MainNavigationPage();
+                    return MainNavigationPage();
                   } else {
                     return const Scaffold(
                       body: Center(child: CircularProgressIndicator()),

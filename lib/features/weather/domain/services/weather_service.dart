@@ -103,6 +103,9 @@ class WeatherService {
           date: DateFormat('yyyy-MM-dd').format(date),
           temp: item['main']['temp'].toDouble(),
           mainCondition: item['weather'][0]['main'],
+          minTemp: item['main']['temp_min'].toDouble(), // ✅ new
+          humidity: item['main']['humidity'], // ✅ new
+          windSpeed: item['wind']['speed'].toDouble(), // ✅ new
         );
         dailyMap[dateString] = forecast;
       }
