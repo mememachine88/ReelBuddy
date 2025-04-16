@@ -40,6 +40,9 @@ class MapService {
       'description': spot.description,
       'lat': spot.lat,
       'lng': spot.lng,
+      'imageBytes':
+          spot.imageBytes != null ? base64Encode(spot.imageBytes!) : null,
+      'username': spot.username ?? "Anonymous", // ✅ NEW
     });
   }
 
@@ -53,6 +56,11 @@ class MapService {
         description: data['description'],
         lat: data['lat'],
         lng: data['lng'],
+        imageBytes:
+            data['imageBytes'] != null
+                ? base64Decode(data['imageBytes'])
+                : null,
+        username: data['username'] ?? 'Anonymous', // ✅ NEW
       );
     }).toList();
   }

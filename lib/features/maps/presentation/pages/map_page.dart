@@ -4,8 +4,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/maps/data/models/fishing_spots.dart';
+import 'package:fyp/features/maps/presentation/cubit/map_states.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../domain/services/map_service.dart';
 import '../cubit/map_cubit.dart';
 
@@ -55,26 +57,56 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   void _showAddFishingSpotDialog(LatLng latLng) {
-    Uint8List? selectedImage;
     String title = '';
     String description = '';
+    Uint8List? selectedImage;
+
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text("Add Fishing Spot"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(labelText: 'Title'),
-                onChanged: (value) => title = value,
-              ),
-              TextField(
-                decoration: const InputDecoration(labelText: 'Description'),
-                onChanged: (value) => description = value,
-              ),
-            ],
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final image = await picker.pickImage(
+                          source: ImageSource.gallery,
+                        );
+                        if (image != null) {
+                          final bytes = await image.readAsBytes();
+                          setState(() {
+                            selectedImage = bytes;
+                          });
+                        }
+                      },
+                      child: const Text('Pick Photo'),
+                    ),
+
+                    if (selectedImage != null) ...[
+                      const SizedBox(height: 10),
+                      Image.memory(selectedImage!, height: 120),
+                    ],
+
+                    TextField(
+                      decoration: const InputDecoration(labelText: 'Title'),
+                      onChanged: (value) => title = value,
+                    ),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Description',
+                      ),
+                      onChanged: (value) => description = value,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           actions: [
             TextButton(
@@ -89,9 +121,10 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   description: description,
                   lat: latLng.latitude,
                   lng: latLng.longitude,
+                  imageBytes: selectedImage,
                 );
+
                 context.read<MapCubit>().addFishingSpot(spot);
-                setState(() => pinLocation = latLng);
                 Navigator.pop(context);
               },
               child: const Text("Add"),

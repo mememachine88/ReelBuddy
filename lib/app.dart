@@ -34,6 +34,7 @@ Bloc Providers For state management
 - post
 
 */
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
   // Auth repo
@@ -93,6 +94,7 @@ class MyApp extends StatelessWidget {
       child: BlocBuilder<ThemeCubit, ThemeData>(
         builder:
             (context, currentTheme) => MaterialApp(
+              navigatorKey: navigatorKey, // ✅ this line
               debugShowCheckedModeBanner: false,
               theme: currentTheme, // ✅ This comes from ThemeCubit
               home: BlocConsumer<AuthCubit, AuthState>(

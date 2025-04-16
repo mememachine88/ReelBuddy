@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,6 +16,7 @@ class LocationSearchBar extends StatefulWidget {
 
 class _LocationSearchBarState extends State<LocationSearchBar> {
   final TextEditingController _controller = TextEditingController();
+  Timer? _debounce;
 
   List<Map<String, dynamic>> _suggestions = [];
   Future<List<Map<String, dynamic>>> fetchPlaceSuggestions(String input) async {
@@ -71,14 +73,24 @@ class _LocationSearchBarState extends State<LocationSearchBar> {
     }
   }
 
-  void _onSearchChanged(String input) async {
-    if (input.isEmpty) {
-      setState(() => _suggestions = []);
-      return;
-    }
+  void _onSearchChanged(String input) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    final results = await fetchPlaceSuggestions(input);
-    setState(() => _suggestions = results);
+    _debounce = Timer(const Duration(seconds: 1), () async {
+      if (input.isEmpty) {
+        setState(() => _suggestions = []);
+        return;
+      }
+
+      final results = await fetchPlaceSuggestions(input);
+      setState(() => _suggestions = results);
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel(); // ✅ clean up
+    super.dispose();
   }
 
   void _onSuggestionSelected(Map<String, dynamic> suggestion) async {
