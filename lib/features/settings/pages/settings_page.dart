@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/themes/theme_cubit.dart';
+import 'package:app_settings/app_settings.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -26,6 +27,13 @@ class SettingsPage extends StatelessWidget {
                   themeCubit.toggleTheme();
                 },
               ),
+            ),
+            ListTile(
+              title: const Text("Location Permissions"),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                AppSettings.openAppSettings();
+              },
             ),
           ],
         ),

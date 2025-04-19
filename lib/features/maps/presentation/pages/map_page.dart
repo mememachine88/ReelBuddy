@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/maps/data/models/fishing_spots.dart';
 import 'package:fyp/features/maps/presentation/cubit/map_states.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -42,6 +43,49 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
         context.read<MapCubit>().loadFishingSpots();
       }
     }
+  }
+
+  Future<void> _handleLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showLocationDeniedPopup(); // 👈 show custom popup
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showLocationDeniedPopup(permanentlyDenied: true);
+      return;
+    }
+  }
+
+  void _showLocationDeniedPopup({bool permanentlyDenied = false}) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Location Permission Required'),
+            content: Text(
+              permanentlyDenied
+                  ? 'Location permission is permanently denied. Please enable it in settings.'
+                  : 'This app needs location access to find your position.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  if (permanentlyDenied) {
+                    Geolocator.openAppSettings(); // Open device settings
+                  }
+                },
+                child: Text(permanentlyDenied ? 'Open Settings' : 'OK'),
+              ),
+            ],
+          ),
+    );
   }
 
   Future<void> _initLocation() async {
@@ -115,6 +159,8 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
             ),
             TextButton(
               onPressed: () {
+                final currentUser = context.read<AuthCubit>().currentUser;
+                final username = currentUser?.username ?? 'Anonymous';
                 final spot = FishingSpot(
                   id: '',
                   title: title,
@@ -122,6 +168,7 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   lat: latLng.latitude,
                   lng: latLng.longitude,
                   imageBytes: selectedImage,
+                  username: username, // Pass the username here
                 );
 
                 context.read<MapCubit>().addFishingSpot(spot);

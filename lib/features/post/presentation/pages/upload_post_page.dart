@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fyp/features/profile/presentation/components/location_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:file_picker/file_picker.dart';
@@ -69,22 +70,22 @@ class _UploadPostPageState extends State<UploadPostPage> {
       return;
     }
     //create new post object
+    final docRef = FirebaseFirestore.instance.collection('posts').doc();
+
     final newPost = Post(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: docRef.id, // ✅ Use Firestore-generated ID
       uid: currentUser!.uid,
       username: currentUser!.username,
       text: textController.text,
-      imageUrl: '',
+      imageUrl: '', // will update after image upload
       timestamp: DateTime.now(),
       likes: [],
       comments: [],
       location: selectedLocation,
     );
 
-    // 🔹 Get PostCubit and call upload function
+    // Call upload function with post + id
     final postCubit = context.read<PostCubit>();
-
-    //upload
     postCubit.createPost(newPost, imagePickedFile?.path);
   }
 

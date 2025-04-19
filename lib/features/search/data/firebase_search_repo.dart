@@ -4,7 +4,7 @@ import 'package:fyp/features/search/domain/search_repo.dart';
 
 class FirebaseSearchRepo implements SearchRepo {
   @override
-  Future<List<ProfileUser?>> searchUsers(String query) async {
+  Future<List<ProfileUser>> searchUsers(String query) async {
     try {
       final result =
           await FirebaseFirestore.instance
@@ -12,8 +12,11 @@ class FirebaseSearchRepo implements SearchRepo {
               .where("name", isGreaterThanOrEqualTo: query)
               .where("name", isLessThanOrEqualTo: "$query\uf8ff")
               .get();
+
       return result.docs.map((doc) {
-        return ProfileUser.fromJson(doc.data());
+        final data = doc.data();
+        data['uid'] = doc.id; // Add document ID as UID
+        return ProfileUser.fromJson(data);
       }).toList();
     } catch (e) {
       throw Exception("Error fetching users: $e");

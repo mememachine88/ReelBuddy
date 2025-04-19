@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/auth/domain/entities/app_user.dart';
 import 'package:fyp/features/auth/presentation/components/my_text_field.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:fyp/features/notifications/domain/entities/notification.dart';
+import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:fyp/features/post/domain/entities/comments.dart';
 import 'package:fyp/features/post/domain/entities/post.dart';
 import 'package:fyp/features/post/presentation/components/comment_tile.dart';
@@ -72,7 +74,7 @@ class _PostTileState extends State<PostTile> {
 
    */
   //user taps like button
-  void toggleLikePost() {
+  void toggleLikePost() async {
     final isLiked = widget.post.likes.contains(currentUser!.uid);
 
     setState(() {
@@ -84,10 +86,31 @@ class _PostTileState extends State<PostTile> {
     });
 
     // Update the backend
-    postCubit.toggleLikePost(widget.post.id, currentUser!.uid).catchError((
-      error,
-    ) {
-      // Revert changes if there is an error
+    try {
+      await postCubit.toggleLikePost(widget.post.id, currentUser!.uid);
+
+      // Only send notification if the user liked (not unliked)
+      if (!isLiked && widget.post.uid != currentUser!.uid) {
+        final notification = AppNotification(
+          id: '',
+          type: 'like',
+          title: '❤️ New Like',
+          message: '${currentUser!.username} liked your post!',
+          timestamp: DateTime.now(),
+          isRead: false,
+          senderUid: currentUser!.uid,
+          senderUsername: currentUser!.username,
+          senderProfileImageUrl: postUser?.profileImageUrl ?? '',
+          postId: widget.post.id,
+        );
+
+        await context.read<NotificationCubit>().sendNotification(
+          widget.post.uid,
+          notification,
+        );
+      }
+    } catch (error) {
+      // Revert UI if failed
       setState(() {
         if (isLiked) {
           widget.post.likes.add(currentUser!.uid);
@@ -95,7 +118,7 @@ class _PostTileState extends State<PostTile> {
           widget.post.likes.remove(currentUser!.uid);
         }
       });
-    });
+    }
   }
 
   /* 
@@ -145,9 +168,8 @@ class _PostTileState extends State<PostTile> {
   }
 
   //create new comment
-  void addComment() {
+  void addComment() async {
     final text = commentTextController.text.trim();
-
     if (text.isEmpty) return;
 
     final newComment = Comment(
@@ -158,26 +180,44 @@ class _PostTileState extends State<PostTile> {
       text: text,
       timestamp: DateTime.now(),
     );
-    print("[Debug] username: $currentUser");
 
-    // Optimistically update the UI
     setState(() {
       widget.post.comments.add(newComment);
     });
 
-    // Clear the input
     commentTextController.clear();
 
-    // Call cubit once and handle rollback
-    context.read<PostCubit>().addComment(widget.post.id, newComment).catchError(
-      (error) {
-        setState(() {
-          widget.post.comments.removeWhere(
-            (comment) => comment.id == newComment.id,
-          );
-        });
-      },
-    );
+    try {
+      await context.read<PostCubit>().addComment(widget.post.id, newComment);
+
+      // ✅ Only notify if commenting on someone else’s post
+      if (widget.post.uid != currentUser!.uid) {
+        final notification = AppNotification(
+          id: '',
+          type: 'comment',
+          title: '💬 New Comment',
+          message: '${currentUser!.username} commented on your post!',
+          timestamp: DateTime.now(),
+          isRead: false,
+          senderUid: currentUser!.uid,
+          senderUsername: currentUser!.username,
+          senderProfileImageUrl: postUser?.profileImageUrl ?? '',
+          postId: widget.post.id, // ✅ Use postUser
+        );
+
+        await context.read<NotificationCubit>().sendNotification(
+          widget.post.uid,
+          notification,
+        );
+      }
+    } catch (error) {
+      // Rollback on failure
+      setState(() {
+        widget.post.comments.removeWhere(
+          (comment) => comment.id == newComment.id,
+        );
+      });
+    }
   }
 
   @override

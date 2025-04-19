@@ -1,18 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
-import 'package:fyp/features/home/presentation/components/floating_bottom_appbar.dart';
 import 'package:fyp/features/home/presentation/components/my_drawer.dart';
 import 'package:fyp/features/post/presentation/components/post_tile.dart';
-import 'package:fyp/features/post/domain/entities/post.dart';
 import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/post/presentation/cubits/post_states.dart';
-import 'package:fyp/features/post/presentation/pages/upload_post_page.dart';
-import 'package:cupertino_icons/cupertino_icons.dart';
 import 'package:fyp/features/weather/presentation/pages/weather_page.dart';
+import 'package:fyp/features/notifications/presentation/pages/notification_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -101,7 +95,10 @@ class _HomePageState extends State<HomePage> {
             size: 30,
           ),
           onPressed: () {
-            // TODO: Handle notifications
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationPage()),
+            );
           },
         ),
         const SizedBox(width: 10),

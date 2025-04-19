@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/auth/domain/entities/app_user.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:fyp/features/notifications/domain/entities/notification.dart';
+import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:fyp/features/post/presentation/components/post_tile.dart';
 import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/post/presentation/cubits/post_states.dart';
@@ -49,7 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final profileState = profileCubit.state;
     if (profileState is! ProfileLoaded) return;
 
-    final profileUser = profileState.profileUser;
+    final profileUser = profileState.profile;
     final isFollowing = profileUser.followers.contains(currentUser!.uid);
 
     setState(() {
@@ -60,9 +62,29 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     });
 
-    await profileCubit.toggleFollow(currentUser!.uid, widget.uid).catchError((
-      _,
-    ) {
+    try {
+      await profileCubit.toggleFollow(currentUser!.uid, widget.uid);
+
+      //Only send notification when newly followed (not unfollowed)
+      if (!isFollowing && widget.uid != currentUser!.uid) {
+        final notification = AppNotification(
+          id: '',
+          type: 'follow',
+          title: '👤 New Follower',
+          message: '${currentUser!.username} started following you!',
+          timestamp: DateTime.now(),
+          isRead: false,
+          senderUid: currentUser!.uid,
+          senderUsername: currentUser!.username,
+          senderProfileImageUrl: profileUser.profileImageUrl ?? '',
+        );
+
+        await context.read<NotificationCubit>().sendNotification(
+          widget.uid,
+          notification,
+        );
+      }
+    } catch (_) {
       setState(() {
         if (isFollowing) {
           profileUser.followers.add(currentUser!.uid);
@@ -70,7 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
           profileUser.followers.remove(currentUser!.uid);
         }
       });
-    });
+    }
   }
 
   @override
@@ -91,7 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
             body: Center(child: CircularProgressIndicator()),
           );
         } else if (profileState is ProfileLoaded) {
-          final user = profileState.profileUser;
+          final user = profileState.profile;
 
           return Scaffold(
             key: _scaffoldKey,
