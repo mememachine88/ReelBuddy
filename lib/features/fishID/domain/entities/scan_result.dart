@@ -6,6 +6,7 @@ class ScanResult {
   final String speciesName;
   final double confidence;
   final DateTime timestamp;
+  final String commonName;
 
   ScanResult({
     required this.id,
@@ -13,6 +14,7 @@ class ScanResult {
     required this.speciesName,
     required this.confidence,
     required this.timestamp,
+    required this.commonName,
   });
 
   Map<String, dynamic> toJson() => {
@@ -29,5 +31,6 @@ class ScanResult {
     speciesName: json["speciesName"],
     confidence: (json["confidence"] ?? 0).toDouble(),
     timestamp: DateTime.parse(json["timestamp"]),
+    commonName: json["commonName"],
   );
 }

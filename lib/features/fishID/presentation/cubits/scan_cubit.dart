@@ -56,9 +56,10 @@ class ScanCubit extends Cubit<ScanState> {
       final result = ScanResult(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         imageUrl: imageFile.path,
-        speciesName: commonName, // ✅ use common name if available
+        speciesName: scientificName, // ✅ use common name if available
         confidence: (species["accuracy"] as num).toDouble(),
         timestamp: DateTime.now(),
+        commonName: commonName,
       );
 
       await firebaseRepo.saveScan(uid, result);

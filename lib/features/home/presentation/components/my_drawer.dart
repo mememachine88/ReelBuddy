@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/app.dart';
 import 'package:fyp/features/fishID/presentation/pages/fish_scanner_page.dart';
+import 'package:fyp/features/logbook/presentation/pages/add_logbook_page.dart';
+import 'package:fyp/features/logbook/presentation/pages/journal_page.dart';
 import 'package:fyp/features/notifications/domain/entities/notification.dart';
 import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
@@ -70,12 +72,12 @@ class MyDrawer extends StatelessWidget {
                 svgIconPath: "assets/fish-hook.svg",
                 onTap: () {
                   Navigator.of(context).pop();
+                  final user = context.read<AuthCubit>().currentUser;
+                  final uid = user?.uid ?? '';
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (context) =>
-                              HomePage(), // Ensure ProfilePage is implemented
+                      builder: (context) => JournalPage(uid: uid),
                     ),
                   );
                 },

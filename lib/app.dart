@@ -11,6 +11,8 @@ import 'package:fyp/features/fishID/data/service/fishial_api_service.dart';
 import 'package:fyp/features/fishID/presentation/cubits/scan_cubit.dart';
 import 'package:fyp/features/home/cubit/navigation_cubit.dart';
 import 'package:fyp/features/home/presentation/pages/main_navigation_page.dart';
+import 'package:fyp/features/logbook/data/firebase_logbook_repo.dart';
+import 'package:fyp/features/logbook/presentation/cubits/logbook_cubit.dart';
 import 'package:fyp/features/maps/domain/services/map_service.dart';
 import 'package:fyp/features/maps/presentation/cubit/map_cubit.dart';
 import 'package:fyp/features/notifications/data/firebase_notification_repo.dart';
@@ -69,6 +71,8 @@ class MyApp extends StatelessWidget {
 
   final fishScannerRepo = FirebaseScanRepo();
 
+  final logBookRepo = FirebaseLogbookRepo();
+
   MyApp({super.key});
 
   @override
@@ -115,6 +119,10 @@ class MyApp extends StatelessWidget {
                 fishialApi: FishialApiService(),
                 firebaseRepo: FirebaseScanRepo(),
               ),
+        ),
+
+        BlocProvider<LogbookCubit>(
+          create: (_) => LogbookCubit(logbookRepo: logBookRepo),
         ),
 
         BlocProvider(

@@ -23,8 +23,8 @@ class ScanResultCard extends StatelessWidget {
             Text("🎣 Result", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
             Text(
-              "Species: ${result.speciesName}",
-              style: const TextStyle(fontSize: 16),
+              "${result.commonName} (${result.speciesName})",
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Text(
               "Confidence: ${(result.confidence * 100).toStringAsFixed(2)}%",
