@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fyp/features/home/presentation/pages/home_page.dart';
+import 'package:fyp/features/home/presentation/pages/main_navigation_page.dart';
+import 'package:fyp/features/logbook/presentation/components/bottom_app_bar.dart';
 import 'package:fyp/features/logbook/presentation/components/log_tile.dart';
 import 'package:fyp/features/logbook/presentation/cubits/logbook_cubit.dart';
 import 'package:fyp/features/logbook/presentation/cubits/logbook_state.dart';
 import 'package:fyp/features/logbook/presentation/pages/add_logbook_page.dart';
+import 'package:fyp/features/logbook/presentation/pages/catch_details_page.dart';
+import 'package:fyp/features/logbook/presentation/pages/show_all_fishing_spot.dart';
 import 'package:fyp/features/logbook/presentation/pages/stats_page.dart';
 
 class JournalPage extends StatefulWidget {
@@ -16,69 +21,58 @@ class JournalPage extends StatefulWidget {
 }
 
 class _JournalPageState extends State<JournalPage> {
+  int selectedIndex = 3;
+
   @override
   void initState() {
     super.initState();
     context.read<LogbookCubit>().loadEntries(widget.uid);
   }
 
+  void _handleNavTap(int index) {
+    if (index == selectedIndex) return;
+
+    setState(() {
+      selectedIndex = index;
+    });
+
+    final state = context.read<LogbookCubit>().state;
+
+    switch (index) {
+      case 0: //Home
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MainNavigationPage()),
+        );
+
+        break;
+      case 1: // Map
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ShowAllFishingSpot()),
+        );
+        break;
+      case 2: //Stats
+        if (state is LogbookLoaded) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => StatsPage(entries: state.entries),
+            ),
+          );
+        }
+        break;
+      case 3: //Journal
+        // Already on this page
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: const Text("Journal"),
-        backgroundColor: Colors.black,
-      ),
+      appBar: AppBar(title: const Text("Journal")),
 
-      // 🔥 Floating add button
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => AddCatchPage(uid: widget.uid)),
-          );
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
-      // 🧭 Custom bottom app bar
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        color: Colors.grey[900],
-        notchMargin: 6.0,
-        child: SizedBox(
-          height: 56,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const SizedBox(width: 40), // Left side empty
-              IconButton(
-                icon: const Icon(Icons.bar_chart, color: Colors.white),
-                onPressed: () {
-                  final state = context.read<LogbookCubit>().state;
-                  if (state is LogbookLoaded) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => StatsPage(entries: state.entries),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Entries still loading")),
-                    );
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      // 🐟 Logbook entries
       body: BlocBuilder<LogbookCubit, LogbookState>(
         builder: (context, state) {
           if (state is LogbookLoading) {
@@ -102,7 +96,12 @@ class _JournalPageState extends State<JournalPage> {
                 return LogbookTile(
                   entry: entry,
                   onTap: () {
-                    // optional: navigate to CatchDetailsPage
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CatchDetailsPage(entry: entry),
+                      ),
+                    );
                   },
                 );
               },
@@ -116,6 +115,17 @@ class _JournalPageState extends State<JournalPage> {
             );
           }
           return const SizedBox();
+        },
+      ),
+
+      bottomNavigationBar: FloatingBottomAppBar(
+        activeIndex: selectedIndex,
+        onItemSelected: _handleNavTap,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => AddCatchPage(uid: widget.uid)),
+          );
         },
       ),
     );

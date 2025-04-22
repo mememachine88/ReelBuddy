@@ -9,13 +9,13 @@ class FloatingAppBarTile extends StatelessWidget {
   final void Function()? onPressed; // Optional parameter for the center button
 
   const FloatingAppBarTile({
-    Key? key,
+    super.key,
     required this.icon,
     this.iconSize = 24,
     required this.onTap,
     this.isActive = false,
     this.onPressed, // Default to false
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

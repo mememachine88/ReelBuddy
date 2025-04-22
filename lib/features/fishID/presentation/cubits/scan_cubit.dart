@@ -33,8 +33,9 @@ class ScanCubit extends Cubit<ScanState> {
         uploadInfo?["direct-upload"]?["headers"] ?? {},
       );
 
-      if (uploadUrl == null || signedId == null)
+      if (uploadUrl == null || signedId == null) {
         throw Exception("Missing upload info");
+      }
 
       final uploaded = await fishialApi.uploadImageToUrl(
         uploadUrl: uploadUrl,

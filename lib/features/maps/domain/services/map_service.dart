@@ -15,7 +15,7 @@ class MapService {
     final apiKey = dotenv.env['GOOGLE_API_KEY'];
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
-      '?location=$lat,$lng&radius=5000&keyword=tackle%20shop&type=store&key=$apiKey',
+      '?location=$lat,$lng&radius=5000&keyword=tackle%&type=store&key=$apiKey',
     );
 
     final response = await http.get(url);
@@ -36,7 +36,6 @@ class MapService {
 
   Future<void> addFishingSpot(FishingSpot spot) async {
     await _firestore.collection('fishing_spots').add({
-      'title': spot.title,
       'description': spot.description,
       'lat': spot.lat,
       'lng': spot.lng,
@@ -52,7 +51,7 @@ class MapService {
       final data = doc.data();
       return FishingSpot(
         id: doc.id,
-        title: data['title'],
+
         description: data['description'],
         lat: data['lat'],
         lng: data['lng'],

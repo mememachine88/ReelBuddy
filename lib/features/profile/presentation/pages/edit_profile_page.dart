@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/auth/presentation/components/my_text_field.dart';
 import 'package:fyp/features/auth/presentation/components/password_strength.dart';
-import 'package:fyp/features/post/presentation/components/gender_dropdown.dart';
+import 'package:fyp/features/post/presentation/components/image_picker.dart';
 import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
@@ -241,7 +241,6 @@ class _EditProfilePage extends State<EditProfilePage> {
   // Build profile edit form UI
   Widget buildEditPage() {
     return Scaffold(
-      //App bar
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Edit Profile"),
@@ -256,150 +255,173 @@ class _EditProfilePage extends State<EditProfilePage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: Container(
-                height: 160,
-                width: 160,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondary,
-                  shape: BoxShape.circle,
-                ),
-                clipBehavior: Clip.hardEdge,
-                child:
-                    (!kIsWeb && imagePickedFile != null)
-                        ? Image.file(
-                          File(imagePickedFile!.path!),
-                          fit: BoxFit.cover,
-                        )
-                        : CachedNetworkImage(
-                          imageUrl: widget.user.profileImageUrl,
-                          placeholder:
-                              (context, url) =>
-                                  const CircularProgressIndicator(),
-                          errorWidget:
-                              (context, url, error) => Icon(
-                                Icons.person,
-                                size: 72,
-                                color: Theme.of(context).colorScheme.secondary,
-                              ),
-                          imageBuilder:
-                              (context, imageProvider) => Image(
-                                image: imageProvider,
-                                fit: BoxFit.cover,
-                              ),
+            Container(
+              padding: const EdgeInsets.only(top: 40, bottom: 20),
+              width: double.infinity,
+              color: Theme.of(context).colorScheme.surface,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey.shade300,
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child:
+                        (!kIsWeb && imagePickedFile != null)
+                            ? Image.file(
+                              File(imagePickedFile!.path!),
+                              fit: BoxFit.cover,
+                            )
+                            : CachedNetworkImage(
+                              imageUrl: widget.user.profileImageUrl,
+                              placeholder:
+                                  (context, url) =>
+                                      const CircularProgressIndicator(),
+                              errorWidget:
+                                  (context, url, error) => Icon(
+                                    Icons.person,
+                                    size: 60,
+                                    color: Colors.grey.shade400,
+                                  ),
+                              fit: BoxFit.cover,
+                            ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: MediaQuery.of(context).size.width / 2 - 60,
+                    child: GestureDetector(
+                      onTap: () async {
+                        final file = await ImagePickerModal.show(context);
+                        if (file != null) {
+                          setState(() {
+                            imagePickedFile = PlatformFile(
+                              name: file.path.split('/').last,
+                              path: file.path,
+                              size: file.lengthSync(),
+                            );
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black54,
                         ),
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
 
-            //Select image
-            Center(
-              child: MaterialButton(
-                onPressed: pickImage,
-                color: Theme.of(context).colorScheme.tertiary,
-                child: const Text("Pick Image"),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              width: double.infinity,
+              color: Theme.of(context).colorScheme.surface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "BIO",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  MyTextField(
+                    controller: bioTextController,
+                    hintText: "Please tell us about yourself",
+                    obscureText: false,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
 
-            //Change Name
-            const Text(
-              "Name",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            MyTextField(
-              controller: nameTextController,
-              hintText: "Enter your name",
-              obscureText: false,
-            ),
-            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Name",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  MyTextField(
+                    controller: nameTextController,
+                    hintText: "Enter your name",
+                    obscureText: false,
+                  ),
+                  const SizedBox(height: 16),
 
-            //Change bio
-            const Text(
-              "Bio",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            MyTextField(
-              controller: bioTextController,
-              hintText: "Enter your bio",
-              obscureText: false,
-            ),
-            const SizedBox(height: 16),
-            /*
-            
-            //select gender
-            const Text(
-              "Gender",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
+                  const Text(
+                    "Change Password",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
 
-            GenderDropdown(
-              selectedGender: selectedGender,
-              onChanged: (value) => setState(() => selectedGender = value),
-            ),
+                  GestureDetector(
+                    onTap: () async {
+                      if (!isPasswordVerified) {
+                        final verified = await showPasswordVerificationDialog();
+                        if (!verified) return;
+                        setState(() => isPasswordVerified = true);
+                      }
+                    },
+                    child: AbsorbPointer(
+                      absorbing: !isPasswordVerified,
+                      child: MyTextField(
+                        controller: passwordTextController,
+                        hintText: "Enter new password",
+                        obscureText: true,
+                      ),
+                    ),
+                  ),
+                  if (passwordTextController.text.isNotEmpty)
+                    PasswordStrengthIndicator(
+                      password: passwordTextController.text,
+                    ),
+                  const SizedBox(height: 16),
 
-            const SizedBox(height: 16), 
-            
-            */
-
-            //change password
-            const Text(
-              "Change Password",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-
-            //new password
-            GestureDetector(
-              onTap: () async {
-                if (!isPasswordVerified) {
-                  final verified = await showPasswordVerificationDialog();
-                  if (!verified) return;
-                  setState(() => isPasswordVerified = true);
-                }
-              },
-              child: AbsorbPointer(
-                absorbing: !isPasswordVerified,
-                child: MyTextField(
-                  controller: passwordTextController,
-                  hintText: "Enter new password",
-                  obscureText: true,
-                ),
-              ),
-            ),
-            if (passwordTextController.text.isNotEmpty)
-              PasswordStrengthIndicator(password: passwordTextController.text),
-
-            const SizedBox(height: 16),
-
-            //confirm password
-            const Text(
-              "Confirm New Password",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () async {
-                if (!isPasswordVerified) {
-                  final verified = await showPasswordVerificationDialog();
-                  if (!verified) return;
-                  setState(() => isPasswordVerified = true);
-                }
-              },
-              child: AbsorbPointer(
-                absorbing: !isPasswordVerified,
-                child: MyTextField(
-                  controller: confirmPasswordController,
-                  hintText: "Confirm new password",
-                  obscureText: true,
-                ),
+                  const Text(
+                    "Confirm New Password",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () async {
+                      if (!isPasswordVerified) {
+                        final verified = await showPasswordVerificationDialog();
+                        if (!verified) return;
+                        setState(() => isPasswordVerified = true);
+                      }
+                    },
+                    child: AbsorbPointer(
+                      absorbing: !isPasswordVerified,
+                      child: MyTextField(
+                        controller: confirmPasswordController,
+                        hintText: "Confirm new password",
+                        obscureText: true,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

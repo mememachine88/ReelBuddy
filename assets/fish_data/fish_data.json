@@ -1,0 +1,524 @@
+{
+  "malaysian_sport_fish": [
+    {
+      "common_name": "Malayan Mahseer",
+      "scientific_name": "Tor tambroides",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Red-bellied Pacu",
+      "scientific_name": "Piaractus brachypomus",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Giant Snakehead",
+      "scientific_name": "Channa micropeltes",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Common Snakehead",
+      "scientific_name": "Channa striata",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Silver Catfish",
+      "scientific_name": "Pangasius nasutus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Asian Redtail Catfish",
+      "scientific_name": "Hemibagrus nemurus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Sultan Fish",
+      "scientific_name": "Leptobarbus hoevenii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Nile Tilapia",
+      "scientific_name": "Oreochromis niloticus",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Java Barb",
+      "scientific_name": "Barbonymus gonionotus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Jullien's Golden Carp",
+      "scientific_name": "Probarbus jullieni",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Hampala Barb",
+      "scientific_name": "Hampala macrolepidota",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Climbing Perch",
+      "scientific_name": "Anabas testudineus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Clown Featherback",
+      "scientific_name": "Chitala lopis",
+      "conservation_status": "near threatened"
+    },
+    {
+      "common_name": "Walking Catfish",
+      "scientific_name": "Clarias batrachus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Giant Catfish",
+      "scientific_name": "Wallago attu",
+      "conservation_status": "near threatened"
+    },
+    {
+      "common_name": "Peacock Bass",
+      "scientific_name": "Cichla ocellaris",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Giant Gourami",
+      "scientific_name": "Osphronemus goramy",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Grass Carp",
+      "scientific_name": "Ctenopharyngodon idella",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Bighead Carp",
+      "scientific_name": "Hypophthalmichthys nobilis",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Rohu",
+      "scientific_name": "Labeo rohita",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Chocolate Mahseer",
+      "scientific_name": "Neolissochilus hexagonolepis",
+      "conservation_status": "near threatened"
+    },
+    {
+      "common_name": "Tiger Barb",
+      "scientific_name": "Puntigrus tetrazona",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Red-bellied Pacu",
+      "scientific_name": "Colossoma bidens",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Arapaima",
+      "scientific_name": "Arapaima gigas",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Common Carp",
+      "scientific_name": "Cyprinus carpio",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Silver Carp",
+      "scientific_name": "Hypophthalmichthys molitrix",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Alligator Gar",
+      "scientific_name": "Atractosteus spatula",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Asian Arowana",
+      "scientific_name": "Scleropages formosus",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Thai Mahseer",
+      "scientific_name": "Probarbus jullieni",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Tinfoil Barb",
+      "scientific_name": "Barbonymus schwanenfeldii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Marble Goby",
+      "scientific_name": "Oxyeleotris marmorata",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Crystal-eyed Catfish",
+      "scientific_name": "Hemibagrus wyckii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Temensis Peacock Bass",
+      "scientific_name": "Cichla temensis",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Catla",
+      "scientific_name": "Catla catla",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Mrigal Carp",
+      "scientific_name": "Cirrhinus mrigala",
+      "conservation_status": "introduced"
+    },
+    {
+      "common_name": "Golden Belly Barb",
+      "scientific_name": "Mystacoleucus marginatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Rice Field Eel",
+      "scientific_name": "Monopterus albus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Coral Catfish",
+      "scientific_name": "Plotosus canius",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Giant Grouper",
+      "scientific_name": "Epinephelus lanceolatus",
+      "conservation_status": "vulnerable"
+    },
+    {
+      "common_name": "Barramundi",
+      "scientific_name": "Lates calcarifer",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Golden Snapper",
+      "scientific_name": "Lutjanus johnii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Spanish Mackerel",
+      "scientific_name": "Scomberomorus commerson",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Giant Trevally",
+      "scientific_name": "Caranx ignobilis",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Black Pomfret",
+      "scientific_name": "Parastromateus niger",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Red Snapper",
+      "scientific_name": "Lutjanus argentimaculatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Threadfin Bream",
+      "scientific_name": "Nemipterus japonicus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Marine Catfish",
+      "scientific_name": "Plotosus lineatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Bluefin Trevally",
+      "scientific_name": "Caranx sexfasciatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Wolf Herring",
+      "scientific_name": "Chirocentrus dorab",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Fourfinger Threadfin",
+      "scientific_name": "Eleutheronema tetradactylum",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Hound Needlefish",
+      "scientific_name": "Tylosurus crocodilus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Leopard Whipray",
+      "scientific_name": "Himantura uarnak",
+      "conservation_status": "vulnerable"
+    },
+    {
+      "common_name": "Blacktip Reef Shark",
+      "scientific_name": "Carcharhinus limbatus",
+      "conservation_status": "near threatened"
+    },
+    {
+      "common_name": "Talang Queenfish",
+      "scientific_name": "Scomberoides commersonianus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Flathead Grey Mullet",
+      "scientific_name": "Mugil cephalus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Paradise Threadfin",
+      "scientific_name": "Polynemus paradiseus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Mangrove Jack",
+      "scientific_name": "Lutjanus argentimaculatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Bronze Featherback",
+      "scientific_name": "Notopterus notopterus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Siamese Gourami",
+      "scientific_name": "Trichopodus pectoralis",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Forest Snakehead",
+      "scientific_name": "Channa lucius",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Hilsa Shad",
+      "scientific_name": "Tenualosa ilisha",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Semah Mahseer",
+      "scientific_name": "Tor duoronensis",
+      "conservation_status": "vulnerable"
+    },
+    {
+      "common_name": "Three-spot Gourami",
+      "scientific_name": "Trichopodus trichopterus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "African Sharptooth Catfish",
+      "scientific_name": "Clarias gariepinus",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Red-tail Catfish",
+      "scientific_name": "Phractocephalus hemioliopterus",
+      "conservation_status": "invasive"
+    },
+    {
+      "common_name": "Jullien's Golden Carp",
+      "scientific_name": "Probarbus jullieni",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Two-spot Hampala",
+      "scientific_name": "Hampala bimaculata",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Sumatran Rasbora",
+      "scientific_name": "Rasbora sumatrana",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Glass Catfish",
+      "scientific_name": "Kryptopterus cryptopterus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Spotted Scat",
+      "scientific_name": "Scatophagus argus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Kissing Gourami",
+      "scientific_name": "Helostoma temminkii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Silver Barb",
+      "scientific_name": "Barbonymus gonionotus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Giant River Prawn",
+      "scientific_name": "Macrobrachium rosenbergii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Bala Shark",
+      "scientific_name": "Balantiocheilos melanopterus",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Emperor Red Snapper",
+      "scientific_name": "Lutjanus sebae",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Indian Mackerel",
+      "scientific_name": "Rastrelliger kanagurta",
+      "conservation_status": "data deficient"
+    },
+    {
+      "common_name": "Giant Mudskipper",
+      "scientific_name": "Periophthalmodon schlosseri",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Honeycomb Whipray",
+      "scientific_name": "Himantura uarnak",
+      "conservation_status": "vulnerable"
+    },
+    {
+      "common_name": "Great Barracuda",
+      "scientific_name": "Sphyraena barracuda",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Blacktip Reef Shark",
+      "scientific_name": "Carcharhinus melanopterus",
+      "conservation_status": "near threatened"
+    },
+    {
+      "common_name": "Belanger's Croaker",
+      "scientific_name": "Johnius belangerii",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Indian Threadfish",
+      "scientific_name": "Alectis indica",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Banded Archerfish",
+      "scientific_name": "Toxotes jaculatrix",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Bluespot Mullet",
+      "scientific_name": "Moolgarda seheli",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Pickhandle Barracuda",
+      "scientific_name": "Sphyraena jello",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Striped Eel Catfish",
+      "scientific_name": "Plotosus lineatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Silver Grunt",
+      "scientific_name": "Pomadasys argenteus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Spangled Emperor",
+      "scientific_name": "Lethrinus nebulosus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Glassy Perchlet",
+      "scientific_name": "Ambassis gymnocephalus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Orbicular Batfish",
+      "scientific_name": "Platax orbicularis",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Blue-barred Parrotfish",
+      "scientific_name": "Scarus ghobban",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Striped Eel Catfish",
+      "scientific_name": "Plotosus lineatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Diamond Trevally",
+      "scientific_name": "Alectis indica",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Eastern Little Tuna",
+      "scientific_name": "Euthynnus affinis",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Moonfish",
+      "scientific_name": "Mene maculata",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Torpedo Scad",
+      "scientific_name": "Megalaspis cordyla",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Starry Triggerfish",
+      "scientific_name": "Abalistes stellaris",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Spotted Scat",
+      "scientific_name": "Scatophagus argus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Spotted Catfish",
+      "scientific_name": "Arius maculatus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Honeycomb Moray Eel",
+      "scientific_name": "Gymnothorax favagineus",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Cobra Snakehead",
+      "scientific_name": "Channa marulius",
+      "conservation_status": "least concern"
+    },
+    {
+      "common_name": "Isok Barb",
+      "scientific_name": "Probarbus jullieni",
+      "conservation_status": "endangered"
+    },
+    {
+      "common_name": "Swordfish",
+      "scientific_name": "Xiphias gladius",
+      "conservation_status": "near threatened"
+    },
+    {
+      "common_name": "Indo-Pacific Sailfish",
+      "scientific_name": "Istiophorus platypterus",
+      "conservation_status": "least concern"
+    }
+  ]
+}

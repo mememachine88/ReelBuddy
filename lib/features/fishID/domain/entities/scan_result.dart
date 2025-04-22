@@ -21,6 +21,7 @@ class ScanResult {
     "id": id,
     "imageUrl": imageUrl,
     "speciesName": speciesName,
+    "commonName": commonName,
     "confidence": confidence,
     "timestamp": timestamp.toIso8601String(),
   };

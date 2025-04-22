@@ -1,4 +1,3 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,7 +15,6 @@ import 'package:fyp/features/logbook/presentation/cubits/logbook_cubit.dart';
 import 'package:fyp/features/maps/domain/services/map_service.dart';
 import 'package:fyp/features/maps/presentation/cubit/map_cubit.dart';
 import 'package:fyp/features/notifications/data/firebase_notification_repo.dart';
-import 'package:fyp/features/notifications/domain/repo/notification_repo.dart';
 import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:fyp/features/post/data/firebase_post_repo.dart';
 import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';

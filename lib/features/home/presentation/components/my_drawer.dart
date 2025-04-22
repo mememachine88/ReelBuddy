@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/app.dart';
 import 'package:fyp/features/fishID/presentation/pages/fish_scanner_page.dart';
-import 'package:fyp/features/logbook/presentation/pages/add_logbook_page.dart';
 import 'package:fyp/features/logbook/presentation/pages/journal_page.dart';
 import 'package:fyp/features/notifications/domain/entities/notification.dart';
 import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
@@ -13,7 +12,6 @@ import 'package:fyp/features/sos/presentation/components/sos_confirmation_dialog
 import 'package:fyp/features/sos/presentation/cubit/sos_cubit.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/home/presentation/components/my_drawer_tile.dart';
-import 'package:fyp/features/home/presentation/pages/home_page.dart';
 import 'package:fyp/features/profile/presentation/pages/profile_page.dart';
 import 'package:fyp/features/search/presentation/pages/search_page.dart';
 import 'package:fyp/features/settings/pages/settings_page.dart';

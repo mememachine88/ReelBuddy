@@ -4,7 +4,6 @@ import 'package:fyp/features/weather/domain/models/weather_forecast.dart';
 import 'package:fyp/features/weather/domain/models/weather_model.dart';
 import 'package:fyp/features/weather/domain/services/weather_service.dart';
 import 'package:fyp/features/weather/presentation/components/metric_tile.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import '../../presentation/components/weather_search.dart';
@@ -17,7 +16,7 @@ class WeatherPage extends StatefulWidget {
   State<WeatherPage> createState() => _WeatherPageState();
 }
 
-//get weather animation
+// Weather animation selector
 String getWeatherAnimation(String? mainCondition) {
   if (mainCondition == null) return 'assets/weather_icons/sunny.json';
   switch (mainCondition.toLowerCase()) {
@@ -38,20 +37,23 @@ String getWeatherAnimation(String? mainCondition) {
     case 'clear':
       return 'assets/weather_icons/sunny.json';
     default:
-      return 'assets/weather_icons/sunny.json'; // Default animation
+      return 'assets/weather_icons/sunny.json';
   }
 }
 
 class _WeatherPageState extends State<WeatherPage> {
-  //api key
   final _weatherService = WeatherService(dotenv.env['WEATHER_API_KEY'] ?? '');
   Weather? _weather;
   String? _selectedLocation;
   List<WeatherForecast>? _forecast;
-  List<WeatherForecast> _forecastList = [];
 
-  //fetch weather
-  _fetchWeather() async {
+  @override
+  void initState() {
+    super.initState();
+    _fetchWeather();
+  }
+
+  Future<void> _fetchWeather() async {
     String city = await _weatherService.getCurrentCity();
     try {
       final weather = await _weatherService.fetchWeather(city);
@@ -65,30 +67,32 @@ class _WeatherPageState extends State<WeatherPage> {
         _forecast = forecast;
       });
     } catch (e) {
-      print("❌ Error fetching default weather: $e");
+      print(" Error fetching weather: $e");
     }
   }
 
-  _fetchWeatherForCoordinates(double lat, double lng, String placeName) async {
+  Future<void> _fetchWeatherForCoordinates(
+    double lat,
+    double lng,
+    String placeName,
+  ) async {
     try {
       final weather = await _weatherService.fetchWeatherByCoordinates(lat, lng);
-      final forecast = await _weatherService.fetch5DayForecast(
-        lat,
-        lng,
-      ); // ← here
-
+      final forecast = await _weatherService.fetch5DayForecast(lat, lng);
       setState(() {
         _weather = weather;
         _forecast = forecast;
-        _forecastList = forecast.cast<WeatherForecast>();
         _selectedLocation = placeName;
       });
     } catch (e) {
-      print("❌ Error fetching weather/forecast: $e");
+      print(" Error fetching weather/forecast: $e");
     }
   }
 
   void _showForecastDetails(BuildContext context, WeatherForecast forecast) {
+    // Dismiss keyboard before opening modal
+    FocusScope.of(context).unfocus();
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -102,9 +106,7 @@ class _WeatherPageState extends State<WeatherPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                DateFormat(
-                  'EEEE, MMM d',
-                ).format(DateTime.parse(forecast.date)).toString(),
+                DateFormat('EEEE, MMM d').format(DateTime.parse(forecast.date)),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -148,159 +150,126 @@ class _WeatherPageState extends State<WeatherPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _fetchWeather();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final String formattedDate = DateFormat(
-      'EEEE, MMM d',
-    ).format(DateTime.now());
+    final formattedDate = DateFormat('EEEE, MMM d').format(DateTime.now());
 
     return Scaffold(
-      // soft light blue background
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 🔍 Search Bar
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: LocationSearchBar(
-                onLocationPicked: (name, lat, lng) {
-                  _fetchWeatherForCoordinates(lat, lng, name);
-                },
-              ),
-            ),
-
-            // 🌤️ Weather Info Display
-            if (_weather != null)
-              Expanded(
-                child: Column(
-                  children: [
-                    // 🔵 Top Rounded Info Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 32),
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(
-                          bottom: Radius.circular(50),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            _selectedLocation ?? 'Unknown',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            formattedDate,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _weather!.mainCondition ?? 'Unknown',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-                    // 🔄 Lottie Animation
-                    Lottie.asset(
-                      getWeatherAnimation(_weather!.mainCondition),
-                      height: 130,
-                      width: 130,
-                      fit: BoxFit.contain,
-                    ),
-
-                    // 🌡️ Temperature
-                    Text(
-                      '${_weather!.temperature.toStringAsFixed(1)} °C',
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // 🔢 Metrics Row
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          MetricTile(
-                            label: "Humidity",
-                            value: "${_weather!.humidity}%",
-                          ),
-                          MetricTile(
-                            label: "Wind Speed",
-                            value: "${_weather!.windSpeed} m/s",
-                          ),
-                          MetricTile(
-                            label: "Feels Like:",
-                            value:
-                                "${_weather!.feelsLike.toStringAsFixed(1)} °C",
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    // 📅 Forecast (stub - replace with real forecast data later)
-                    if (_forecast != null && _forecast!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "5-Day Forecast",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children:
-                                  _forecast!.map((f) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 12),
-                                      child: ForecastTile(
-                                        day:
-                                            f.date, // should be formatted like "Mon", "Tue"
-                                        temp: "${f.temp.toStringAsFixed(0)}°C",
-                                        mainCondition: f.mainCondition,
-                                        onTap: () {
-                                          _showForecastDetails(context, f);
-                                        },
-                                      ),
-                                    );
-                                  }).toList(),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+      resizeToAvoidBottomInset: true,
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Search bar
+                LocationSearchBar(
+                  onLocationPicked: (name, lat, lng) {
+                    _fetchWeatherForCoordinates(lat, lng, name);
+                  },
                 ),
-              )
-            else
-              const Expanded(child: Center(child: CircularProgressIndicator())),
-          ],
+
+                const SizedBox(height: 20),
+
+                if (_weather != null) ...[
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          _selectedLocation ?? 'Unknown',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          DateFormat('EEEE, MMM d').format(DateTime.now()),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(_weather!.mainCondition ?? 'Unknown'),
+                        const SizedBox(height: 20),
+                        Lottie.asset(
+                          getWeatherAnimation(_weather!.mainCondition),
+                          height: 130,
+                          width: 130,
+                        ),
+                        Text(
+                          '${_weather!.temperature.toStringAsFixed(1)} °C',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            MetricTile(
+                              label: "Humidity",
+                              value: "${_weather!.humidity}%",
+                            ),
+                            MetricTile(
+                              label: "Wind",
+                              value: "${_weather!.windSpeed} m/s",
+                            ),
+                            MetricTile(
+                              label: "Feels Like",
+                              value:
+                                  "${_weather!.feelsLike.toStringAsFixed(1)} °C",
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (_forecast != null && _forecast!.isNotEmpty) ...[
+                    const Text(
+                      "5-Day Forecast",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children:
+                            _forecast!
+                                .map(
+                                  (f) => Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: ForecastTile(
+                                      day: f.date,
+                                      temp: "${f.temp.toStringAsFixed(0)}°C",
+                                      mainCondition: f.mainCondition,
+                                      onTap:
+                                          () =>
+                                              _showForecastDetails(context, f),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+                    ),
+                  ],
+                ] else
+                  const Center(child: CircularProgressIndicator()),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
         ),
       ),
     );

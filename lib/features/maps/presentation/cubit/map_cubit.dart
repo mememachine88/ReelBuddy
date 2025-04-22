@@ -1,13 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fyp/app.dart';
-import 'package:fyp/features/maps/data/models/fishing_spots.dart';
-import 'package:fyp/features/maps/presentation/components/fishing_spot_popup.dart';
-import 'package:fyp/features/maps/presentation/cubit/map_states.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../data/models/fishing_spots.dart';
 import '../../data/models/tackle_shop.dart';
 import '../../domain/services/map_service.dart';
+import 'map_states.dart';
 
 enum MapMode { tackle, fishing }
 
@@ -15,7 +12,7 @@ class MapCubit extends Cubit<MapState> {
   final MapService _mapService;
 
   MapCubit(this._mapService)
-    : super(MapState(mode: MapMode.tackle, markers: {}));
+    : super(MapState(mode: MapMode.tackle, markers: {}, fishingSpots: []));
 
   Future<void> loadTackleShops(LatLng userLocation) async {
     final allShops = await _mapService.fetchNearbyTackleShops(
@@ -23,7 +20,7 @@ class MapCubit extends Cubit<MapState> {
       userLocation.longitude,
     );
 
-    const maxDistanceInMeters = 5000; // e.g., 5km
+    const maxDistanceInMeters = 5000;
 
     final nearbyShops =
         allShops.where((shop) {
@@ -40,7 +37,7 @@ class MapCubit extends Cubit<MapState> {
         nearbyShops
             .map(
               (s) => Marker(
-                markerId: MarkerId(s.id),
+                markerId: MarkerId('tackle_${s.id}'),
                 position: LatLng(s.lat, s.lng),
                 infoWindow: InfoWindow(title: s.name),
               ),
@@ -52,43 +49,32 @@ class MapCubit extends Cubit<MapState> {
 
   Future<void> loadFishingSpots() async {
     final spots = await _mapService.fetchFishingSpots();
+
     final markers =
         spots
             .map(
               (s) => Marker(
-                markerId: MarkerId(s.id),
+                markerId: MarkerId('spot_${s.id}'),
                 position: LatLng(s.lat, s.lng),
-                onTap: () {
-                  showDialog(
-                    context:
-                        navigatorKey
-                            .currentContext!, // 👈 Make sure you define this
-                    builder: (_) => FishingSpotPopup(spot: s),
-                  );
-                },
               ),
             )
             .toSet();
+
     emit(
       state.copyWith(
         mode: MapMode.fishing,
-        markers:
-            markers
-                as Set<
-                  Marker
-                >?, // ✅ This should already work IF `markers` is Set<Marker>
+        markers: markers,
+        fishingSpots: spots,
       ),
     );
   }
 
   Future<void> addFishingSpot(FishingSpot spot) async {
     await _mapService.addFishingSpot(spot);
-    await loadFishingSpots(); // refresh
+    await loadFishingSpots();
   }
 
   void enableAddFishingSpotMode() {
-    emit(
-      state.copyWith(mode: MapMode.fishing),
-    ); // or however you're managing modes
+    emit(state.copyWith(mode: MapMode.fishing));
   }
 }

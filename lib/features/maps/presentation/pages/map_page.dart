@@ -3,13 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fyp/features/auth/presentation/components/my_text_field.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/maps/data/models/fishing_spots.dart';
+import 'package:fyp/features/maps/presentation/components/fishing_spot_popup.dart';
 import 'package:fyp/features/maps/presentation/cubit/map_states.dart';
+import 'package:fyp/features/weather/presentation/components/weather_search.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../domain/services/map_service.dart';
 import '../cubit/map_cubit.dart';
 
 class MapPage extends StatefulWidget {
@@ -25,6 +27,12 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
   LatLng? userLocation;
   late TabController _tabController;
   LatLng? pinLocation;
+  bool _isMapLoading = true;
+  String? selectedTackleShopName;
+  LatLng? selectedTackleShopLatLng;
+
+  final titleController = TextEditingController();
+  final descriptionController = TextEditingController();
 
   @override
   void initState() {
@@ -92,108 +100,25 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
     final position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-    setState(() {
-      userLocation = LatLng(position.latitude, position.longitude);
-    });
-    if (context.mounted) {
-      context.read<MapCubit>().loadTackleShops(userLocation!);
+    if (mounted) {
+      setState(() {
+        userLocation = LatLng(position.latitude, position.longitude);
+      });
+      if (context.mounted) {
+        context.read<MapCubit>().loadTackleShops(userLocation!);
+      }
     }
   }
 
-  void _showAddFishingSpotDialog(LatLng latLng) {
-    String title = '';
-    String description = '';
-    Uint8List? selectedImage;
-
-    showDialog(
+  void showFishingSpotPopup(BuildContext context, FishingSpot spot) {
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Add Fishing Spot"),
-          content: StatefulBuilder(
-            builder: (context, setState) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        final picker = ImagePicker();
-                        final image = await picker.pickImage(
-                          source: ImageSource.gallery,
-                        );
-                        if (image != null) {
-                          final bytes = await image.readAsBytes();
-                          setState(() {
-                            selectedImage = bytes;
-                          });
-                        }
-                      },
-                      child: const Text('Pick Photo'),
-                    ),
-
-                    if (selectedImage != null) ...[
-                      const SizedBox(height: 10),
-                      Image.memory(selectedImage!, height: 120),
-                    ],
-
-                    TextField(
-                      decoration: const InputDecoration(labelText: 'Title'),
-                      onChanged: (value) => title = value,
-                    ),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Description',
-                      ),
-                      onChanged: (value) => description = value,
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                final currentUser = context.read<AuthCubit>().currentUser;
-                final username = currentUser?.username ?? 'Anonymous';
-                final spot = FishingSpot(
-                  id: '',
-                  title: title,
-                  description: description,
-                  lat: latLng.latitude,
-                  lng: latLng.longitude,
-                  imageBytes: selectedImage,
-                  username: username, // Pass the username here
-                );
-
-                context.read<MapCubit>().addFishingSpot(spot);
-                Navigator.pop(context);
-              },
-              child: const Text("Add"),
-            ),
-          ],
-        );
-      },
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => FishingSpotPopup(spot: spot),
     );
-  }
-
-  void handleAddPressedFromNavBar() async {
-    if (_tabController.index == 0) {
-      _tabController.animateTo(1);
-      context.read<MapCubit>().loadFishingSpots();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tap on the map to add a fishing spot')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tap on the map to add a fishing spot')),
-      );
-    }
   }
 
   Widget buildMap(bool showTackleShops) {
@@ -201,17 +126,52 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
         ? const Center(child: CircularProgressIndicator())
         : BlocBuilder<MapCubit, MapState>(
           builder: (context, state) {
-            final combinedMarkers = {
-              ...state.markers,
-              if (pinLocation != null)
-                Marker(
-                  markerId: const MarkerId("pin_marker"),
-                  position: pinLocation!,
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueRed,
-                  ),
-                ),
-            };
+            final contextState = context.read<MapCubit>().state;
+
+            final filteredMarkers = contextState.markers.where((marker) {
+              final id = marker.markerId.value;
+              return showTackleShops
+                  ? id.startsWith('tackle_')
+                  : id.startsWith('spot_');
+            });
+
+            final markersWithTap =
+                filteredMarkers.map((marker) {
+                  final markerId = marker.markerId.value;
+
+                  // Fishing spot
+                  if (markerId.startsWith('spot_')) {
+                    final spot = contextState.fishingSpots.firstWhere(
+                      (s) => 'spot_${s.id}' == markerId,
+                      orElse:
+                          () => FishingSpot(
+                            id: '',
+                            description: '',
+                            lat: 0,
+                            lng: 0,
+                          ),
+                    );
+
+                    return marker.copyWith(
+                      onTapParam: () => showFishingSpotPopup(context, spot),
+                    );
+                  }
+
+                  // Tackle shop
+                  if (markerId.startsWith('tackle_')) {
+                    return marker.copyWith(
+                      onTapParam: () {
+                        setState(() {
+                          selectedTackleShopName = marker.infoWindow.title;
+                          selectedTackleShopLatLng = marker.position;
+                        });
+                      },
+                    );
+                  }
+
+                  return marker;
+                }).toSet();
+
             return GoogleMap(
               initialCameraPosition: CameraPosition(
                 target: userLocation!,
@@ -219,12 +179,7 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
               ),
               onMapCreated: (controller) => mapController = controller,
               myLocationEnabled: true,
-              markers: combinedMarkers,
-              onTap: (position) {
-                if (_tabController.index == 1) {
-                  _showAddFishingSpotDialog(position); // no setState here
-                }
-              },
+              markers: markersWithTap,
             );
           },
         );
@@ -233,19 +188,104 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.blue,
-          unselectedLabelColor: Colors.grey,
-          tabs: const [Tab(text: 'Tackle Shops'), Tab(text: 'Fishing Spots')],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [buildMap(true), buildMap(false)],
+      body: Stack(
+        children: [
+          //Tab-based maps (Tackle Shops / Fishing Spots)
+          TabBarView(
+            controller: _tabController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [buildMap(true), buildMap(false)],
+          ),
+
+          // 🔍 Location Search Overlay
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: LocationSearchBar(
+                onLocationPicked: (name, lat, lng) {
+                  mapController?.animateCamera(
+                    CameraUpdate.newLatLngZoom(LatLng(lat, lng), 14),
+                  );
+                },
+              ),
+            ),
+          ),
+
+          // if (selectedTackleShopName != null &&
+          //     selectedTackleShopLatLng != null)
+          //   Positioned(
+          //     bottom: 100,
+          //     left: MediaQuery.of(context).size.width / 2 - 100,
+          //     child: Material(
+          //       elevation: 4,
+          //       color: Colors.transparent,
+          //       child: Container(
+          //         padding: const EdgeInsets.symmetric(
+          //           horizontal: 16,
+          //           vertical: 8,
+          //         ),
+          //         decoration: BoxDecoration(
+          //           color: Colors.black.withOpacity(0.8),
+          //           borderRadius: BorderRadius.circular(20),
+          //         ),
+          //         child: Text(
+          //           selectedTackleShopName!,
+          //           style: const TextStyle(color: Colors.white, fontSize: 14),
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+
+          //Floating buttons
+          //Floating buttons with center location
+          Positioned(
+            top: 100,
+            right: 16,
+            child: Column(
+              children: [
+                FloatingActionButton(
+                  heroTag: 'tackle',
+                  mini: true,
+                  backgroundColor:
+                      _tabController.index == 0 ? Colors.blue : Colors.grey,
+                  onPressed: () {
+                    setState(() => _tabController.index = 0);
+                  },
+                  child: const Icon(Icons.shopping_bag),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'fish',
+                  mini: true,
+                  backgroundColor:
+                      _tabController.index == 1 ? Colors.blue : Colors.grey,
+                  onPressed: () {
+                    setState(() => _tabController.index = 1);
+                  },
+                  child: const Icon(Icons.location_pin),
+                ),
+                const SizedBox(height: 12),
+                FloatingActionButton(
+                  heroTag: 'center',
+                  mini: true,
+                  backgroundColor: Colors.teal,
+                  onPressed: () {
+                    if (userLocation != null && mapController != null) {
+                      mapController!.animateCamera(
+                        CameraUpdate.newLatLngZoom(userLocation!, 14),
+                      );
+                    }
+                  },
+                  child: const Icon(Icons.my_location),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

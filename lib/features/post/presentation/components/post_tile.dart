@@ -34,6 +34,8 @@ class _PostTileState extends State<PostTile> {
   //cubits
   late final postCubit = context.read<PostCubit>();
   late final profileCubit = context.read<ProfileCubit>();
+  bool showHeart = false;
+  bool isUnliked = false;
 
   //only delete own post
   bool isOwnPost = false;
@@ -190,12 +192,12 @@ class _PostTileState extends State<PostTile> {
     try {
       await context.read<PostCubit>().addComment(widget.post.id, newComment);
 
-      // ✅ Only notify if commenting on someone else’s post
+      //  Only notify if commenting on someone else’s post
       if (widget.post.uid != currentUser!.uid) {
         final notification = AppNotification(
           id: '',
           type: 'comment',
-          title: '💬 New Comment',
+          title: 'New Comment',
           message: '${currentUser!.username} commented on your post!',
           timestamp: DateTime.now(),
           isRead: false,
@@ -288,15 +290,14 @@ class _PostTileState extends State<PostTile> {
             child: Padding(
               padding: const EdgeInsets.all(12.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  //profile picture
+                  //  Profile Picture
                   postUser?.profileImageUrl != null
                       ? CachedNetworkImage(
                         imageUrl: postUser!.profileImageUrl,
                         errorWidget:
                             (context, url, error) => Icon(
-                              Icons.person,
+                              CupertinoIcons.person_fill,
                               color:
                                   Theme.of(context).colorScheme.inversePrimary,
                             ),
@@ -313,14 +314,15 @@ class _PostTileState extends State<PostTile> {
                               ),
                             ),
                       )
-                      : const Icon(Icons.person),
-                  //name
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      : const Icon(CupertinoIcons.person_fill),
+
+                  const SizedBox(width: 12),
+
+                  // Username + Location
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Username
                         Text(
                           widget.post.username,
                           style: TextStyle(
@@ -330,37 +332,36 @@ class _PostTileState extends State<PostTile> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        // Location with icon
                         if (widget.post.location != null &&
                             widget.post.location!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4.0),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  CupertinoIcons.location_solid,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                  size: 16,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
+                          Row(
+                            children: [
+                              Icon(
+                                CupertinoIcons.location_solid,
+                                color: Theme.of(context).colorScheme.secondary,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                //  ensures location text fits without overflow
+                                child: Text(
                                   widget.post.location!,
                                   style: TextStyle(
                                     color:
                                         Theme.of(context).colorScheme.secondary,
                                     fontSize: 12,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                       ],
                     ),
                   ),
 
-                  const Spacer(),
-                  //delete button
+                  // Delete button (if owner)
                   if (isOwnPost)
                     IconButton(
                       onPressed: showOptions,
@@ -373,15 +374,59 @@ class _PostTileState extends State<PostTile> {
               ),
             ),
           ),
+
           //image
-          CachedNetworkImage(
-            imageUrl: widget.post.imageUrl,
-            height: 440,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => const SizedBox(height: 440),
-            errorWidget: (context, url, error) => const Icon(Icons.error),
+          // Double-tap to like with animated heart
+          GestureDetector(
+            onDoubleTap: () async {
+              final isLiked = widget.post.likes.contains(currentUser!.uid);
+
+              // Set the appropriate icon
+              setState(() {
+                isUnliked = isLiked; // if already liked, we're unliking
+                showHeart = true;
+              });
+
+              toggleLikePost(); // perform the like/unlike action
+
+              await Future.delayed(const Duration(seconds: 1));
+              if (mounted) setState(() => showHeart = false);
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: widget.post.imageUrl,
+                  height: 440,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => const SizedBox(height: 440),
+                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                ),
+
+                // Animated heart overlay
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: showHeart ? 1.0 : 0.0,
+                  child: Icon(
+                    isUnliked
+                        ? CupertinoIcons.heart_slash_circle
+                        : CupertinoIcons.heart_circle,
+                    color:
+                        isUnliked
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.red,
+                    size: 100,
+                    shadows: const [
+                      Shadow(blurRadius: 10, color: Colors.black),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
+
+          // Like + Comment row
           Padding(
             padding: const EdgeInsets.all(15.0),
             child: Row(
@@ -390,7 +435,6 @@ class _PostTileState extends State<PostTile> {
                   width: 60,
                   child: Row(
                     children: [
-                      //like button
                       GestureDetector(
                         onTap: toggleLikePost,
                         child: Icon(
@@ -399,19 +443,19 @@ class _PostTileState extends State<PostTile> {
                               : CupertinoIcons.heart,
                           color:
                               widget.post.likes.contains(currentUser!.uid)
-                                  ? Colors
-                                      .red // Change to red when liked
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .inversePrimary, // Default color when not liked
+                                  ? Colors.red
+                                  : Theme.of(
+                                    context,
+                                  ).colorScheme.inversePrimary,
                         ),
                       ),
+                      const SizedBox(width: 4),
                       Text(widget.post.likes.length.toString()),
                     ],
                   ),
                 ),
 
-                //comment button
+                // Comment button remains unchanged
                 GestureDetector(
                   onTap: openNewCommentBox,
                   child: Icon(
@@ -419,12 +463,12 @@ class _PostTileState extends State<PostTile> {
                     color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
-
                 Text(widget.post.comments.length.toString()),
+
                 const Spacer(),
 
-                //timestamp
-                Text(formattedDate),
+                // Date
+                Text(DateFormat('d MMM yyyy').format(widget.post.timestamp)),
               ],
             ),
           ),

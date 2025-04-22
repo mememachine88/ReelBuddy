@@ -65,13 +65,11 @@ class NotificationTile extends StatelessWidget {
       onTap: () => _handleTap(context),
       leading: CircleAvatar(
         backgroundImage:
-            (notification.senderProfileImageUrl != null &&
-                    notification.senderProfileImageUrl.isNotEmpty)
+            (notification.senderProfileImageUrl.isNotEmpty)
                 ? NetworkImage(notification.senderProfileImageUrl)
                 : null,
         child:
-            (notification.senderProfileImageUrl == null ||
-                    notification.senderProfileImageUrl.isEmpty)
+            (notification.senderProfileImageUrl.isEmpty)
                 ? const Icon(Icons.person)
                 : null,
       ),

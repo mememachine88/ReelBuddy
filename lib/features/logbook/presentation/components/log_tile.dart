@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../domain/entities/logbook_entry.dart';
 import 'package:intl/intl.dart';
@@ -24,12 +23,13 @@ class LogbookTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 🐟 Image
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: CachedNetworkImage(
-                imageUrl: entry.imageUrl!,
+                imageUrl: entry.imageUrl ?? '',
                 width: 70,
                 height: 70,
                 fit: BoxFit.cover,
@@ -58,31 +58,39 @@ class LogbookTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // 🔠 Species (truncate if long)
                   Text(
                     entry.species,
                     style: Theme.of(context).textTheme.titleMedium,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 6),
-                  Row(
+
+                  // 📏 Info Row (wrap if needed)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
                     children: [
-                      const Icon(Icons.access_time, size: 16),
-                      const SizedBox(width: 4),
-                      Text(entry.catchTime.format(context)),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.straighten, size: 16),
-                      const SizedBox(width: 4),
-                      Text('${entry.length.toStringAsFixed(0)} cm'),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.monitor_weight, size: 16),
-                      const SizedBox(width: 4),
-                      Text('${entry.weight.toStringAsFixed(1)} kg'),
+                      _infoIconText(
+                        Icons.access_time,
+                        entry.catchTime.format(context),
+                      ),
+                      _infoIconText(
+                        Icons.straighten,
+                        '${entry.length.toStringAsFixed(0)} cm',
+                      ),
+                      _infoIconText(
+                        Icons.monitor_weight,
+                        '${entry.weight.toStringAsFixed(1)} kg',
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
 
-            // 🔁 Released Tag + Date
+            // 🔁 Released + Date
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -98,6 +106,18 @@ class LogbookTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // Helper to create icon + text pair
+  Widget _infoIconText(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[400]),
+        const SizedBox(width: 4),
+        Text(text, style: const TextStyle(fontSize: 13)),
+      ],
     );
   }
 }

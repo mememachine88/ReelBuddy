@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:fyp/features/maps/data/models/fishing_spots.dart';
 import '../domain/entities/logbook_entry.dart';
 import '../domain/repo/logbook_repo.dart';
 
@@ -57,5 +60,28 @@ class FirebaseLogbookRepo implements LogbookRepo {
     }
 
     await docRef.delete();
+  }
+
+  Future<List<FishingSpot>> fetchUserSpots(String username) async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('fishing_spots')
+            .where('username', isEqualTo: username)
+            .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return FishingSpot(
+        id: doc.id,
+        description: data['description'],
+        lat: data['lat'],
+        lng: data['lng'],
+        username: data['username'],
+        imageBytes:
+            data['imageBytes'] != null
+                ? base64Decode(data['imageBytes'])
+                : null,
+      );
+    }).toList();
   }
 }

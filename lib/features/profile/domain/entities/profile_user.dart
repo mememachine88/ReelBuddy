@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:fyp/features/auth/domain/entities/app_user.dart';
 
 class ProfileUser extends AppUser {

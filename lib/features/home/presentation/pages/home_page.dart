@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -5,6 +6,9 @@ import 'package:fyp/features/home/presentation/components/my_drawer.dart';
 import 'package:fyp/features/post/presentation/components/post_tile.dart';
 import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/post/presentation/cubits/post_states.dart';
+import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
+import 'package:fyp/features/profile/presentation/pages/profile_page.dart';
 import 'package:fyp/features/weather/presentation/pages/weather_page.dart';
 import 'package:fyp/features/notifications/presentation/pages/notification_page.dart';
 
@@ -58,6 +62,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     fetchAllPosts();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      context.read<ProfileCubit>().getUserProfile(uid);
+    }
   }
 
   void fetchAllPosts() {
@@ -71,6 +79,10 @@ class _HomePageState extends State<HomePage> {
 
   //build app bar
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid ?? '';
+    final profileImage = user?.photoURL;
+
     return AppBar(
       title: Text(
         "Home",
@@ -87,6 +99,59 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       automaticallyImplyLeading: false,
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: GestureDetector(
+          onTap: () async {
+            final uid = FirebaseAuth.instance.currentUser?.uid;
+            if (uid != null) {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => ProfilePage(uid: uid)),
+              );
+
+              // ✅ This actually emits ProfileLoaded to update BlocBuilder
+              await context.read<ProfileCubit>().getUserProfile(uid);
+            }
+          },
+
+          child: BlocBuilder<ProfileCubit, ProfileState>(
+            builder: (context, state) {
+              if (state is ProfileLoaded) {
+                final profileImageUrl = state.profile.profileImageUrl;
+
+                if (profileImageUrl.isNotEmpty &&
+                    Uri.tryParse(profileImageUrl)?.hasAbsolutePath == true) {
+                  return CircleAvatar(
+                    radius: 18,
+                    backgroundImage: NetworkImage(profileImageUrl),
+                  );
+                } else {
+                  return CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Theme.of(context).colorScheme.tertiary,
+                    child: Icon(
+                      CupertinoIcons.person_fill,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  );
+                }
+              }
+
+              // While loading or failed
+              return CircleAvatar(
+                radius: 18,
+                backgroundColor: Theme.of(context).colorScheme.tertiary,
+                child: Icon(
+                  CupertinoIcons.person_fill,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+
       actions: [
         IconButton(
           icon: Icon(

@@ -9,7 +9,6 @@ class UserTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasProfileImage =
-        user.profileImageUrl != null &&
         user.profileImageUrl.trim().isNotEmpty &&
         user.profileImageUrl.toLowerCase() != 'null';
 
@@ -25,11 +24,11 @@ class UserTile extends StatelessWidget {
               )
               : CircleAvatar(
                 radius: 24,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 child: Icon(
                   Icons.person,
                   color: Theme.of(context).colorScheme.tertiary,
                 ),
-                backgroundColor: Theme.of(context).colorScheme.primary,
               ),
 
       trailing: Icon(

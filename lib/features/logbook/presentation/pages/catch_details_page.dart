@@ -1,6 +1,5 @@
 // logbook/presentation/pages/catch_details_page.dart
 
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fyp/features/logbook/domain/entities/logbook_entry.dart';
 import 'package:intl/intl.dart';

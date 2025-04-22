@@ -5,11 +5,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:fyp/app.dart';
 import 'package:fyp/config/firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:fyp/utils/fish_species_loader.dart';
+
+List<String> globalFishSpeciesList = [];
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final file = File('.env');
   final exists = await file.exists();
+  globalFishSpeciesList = await loadFishSpecies();
 
   print('File exists: $exists');
 

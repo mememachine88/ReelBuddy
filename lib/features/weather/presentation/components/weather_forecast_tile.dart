@@ -9,6 +9,7 @@ class ForecastTile extends StatelessWidget {
   final VoidCallback onTap;
 
   const ForecastTile({
+    super.key,
     required this.day,
     required this.temp,
     this.mainCondition,

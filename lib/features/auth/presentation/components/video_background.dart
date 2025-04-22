@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoBackground extends StatefulWidget {
-  const VideoBackground({Key? key}) : super(key: key);
+  const VideoBackground({super.key});
 
   @override
   _VideoBackgroundState createState() => _VideoBackgroundState();
@@ -41,8 +41,8 @@ class _VideoBackgroundState extends State<VideoBackground> {
                   ? FittedBox(
                     fit: BoxFit.cover,
                     child: SizedBox(
-                      width: _controller.value.size?.width ?? 0,
-                      height: _controller.value.size?.height ?? 0,
+                      width: _controller.value.size.width ?? 0,
+                      height: _controller.value.size.height ?? 0,
                       child: VideoPlayer(_controller),
                     ),
                   )
@@ -52,7 +52,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
         // Semi-Transparent Overlay
         Positioned.fill(
           child: Container(
-            color: Colors.black.withOpacity(0.3), // Adjust opacity as needed
+            color: Colors.black.withOpacity(0.4), // Adjust opacity as needed
           ),
         ),
       ],

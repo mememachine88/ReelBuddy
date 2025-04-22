@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/home/cubit/navigation_cubit.dart';
+import 'package:fyp/features/home/presentation/components/add_options_sheet.dart';
 import 'package:fyp/features/home/presentation/components/floating_bottom_appbar.dart';
 import 'package:fyp/features/home/presentation/components/my_drawer.dart';
 import 'package:fyp/features/home/presentation/pages/home_page.dart';
+import 'package:fyp/features/logbook/presentation/pages/journal_page.dart';
 import 'package:fyp/features/maps/presentation/pages/map_page.dart';
+import 'package:fyp/features/maps/presentation/pages/upload_fishing_spot_page.dart';
 import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:fyp/features/post/presentation/pages/upload_post_page.dart';
 import 'package:fyp/features/profile/presentation/pages/profile_page.dart';
@@ -27,6 +30,13 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   final mapPageKey = GlobalKey<MapPageState>();
 
   bool hasShownPopup = false;
+  bool showAddOptions = false;
+
+  void toggleAddOptions() {
+    setState(() {
+      showAddOptions = !showAddOptions;
+    });
+  }
 
   @override
   void initState() {
@@ -39,7 +49,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       if (currentUser != null) {
         await context.read<SOSCubit>().loadReceivedAlerts(currentUser.uid);
         notificationCubit.fetchNotifications(currentUser.uid);
-        print("📥 Fetching SOS for: ${currentUser?.uid}");
+        print("📥 Fetching SOS for: ${currentUser.uid}");
       }
     });
   }
@@ -73,7 +83,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
               "ID: ${alert.id} | Receiver: ${alert.receiverUid} | Read: ${alert.isRead}",
             );
           }
-          print("👤 Current user UID: ${currentUser?.uid}");
+          print("👤 Current user UID: ${currentUser.uid}");
 
           if (unread.id.isNotEmpty) {
             await FirebaseSOSRepo().markAlertAsRead(unread.id);
@@ -86,29 +96,57 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           }
         }
       },
-      child: Scaffold(
-        body: pages[navIndex],
-        endDrawer: const MyDrawer(),
-        bottomNavigationBar: Builder(
-          builder:
-              (context) => FloatingBottomAppBar(
-                activeIndex: navIndex,
-                onItemSelected: (index) {
-                  context.read<NavigationCubit>().setTab(index);
-                },
-                onPressed: () {
-                  if (navIndex == 3) {
-                    mapPageKey.currentState?.handleAddPressedFromNavBar();
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const UploadPostPage()),
-                    );
-                  }
-                },
-                onDrawerPressed: () => Scaffold.of(context).openEndDrawer(),
-              ),
-        ),
+
+      child: Stack(
+        children: [
+          Scaffold(
+            body: pages[navIndex],
+            endDrawer: const MyDrawer(),
+            bottomNavigationBar: Builder(
+              builder:
+                  (context) => FloatingBottomAppBar(
+                    activeIndex: navIndex,
+                    onItemSelected: (index) {
+                      context.read<NavigationCubit>().setTab(index);
+                    },
+                    onDrawerPressed: () => Scaffold.of(context).openEndDrawer(),
+                    onPressed: toggleAddOptions,
+                  ),
+            ),
+          ),
+
+          /// ✅ This is where your AddOptionsPopout appears
+          if (showAddOptions)
+            AddOptionsPopout(
+              onAddPost: () {
+                toggleAddOptions();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UploadPostPage()),
+                );
+              },
+              onMarkSpot: () {
+                toggleAddOptions();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const UploadFishingSpotPage(),
+                  ),
+                );
+              },
+              onLogCatch: () {
+                toggleAddOptions();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => JournalPage(uid: currentUser?.uid ?? ''),
+                  ),
+                );
+              },
+
+              onDismiss: toggleAddOptions,
+            ),
+        ],
       ),
     );
   }

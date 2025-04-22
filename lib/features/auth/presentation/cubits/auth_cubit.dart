@@ -4,12 +4,10 @@ Auth Cubit: State Management
 
  */
 
-import 'package:flutter/material.dart';
 import 'package:fyp/features/auth/domain/entities/app_user.dart';
 import 'package:fyp/features/auth/domain/repo/auth_repo.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fyp/features/sos/presentation/cubit/sos_cubit.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepo authRepo;
@@ -39,8 +37,6 @@ class AuthCubit extends Cubit<AuthState> {
       if (user != null) {
         _currentUser = user;
         emit(Authenticated(user));
-       
-
       } else {
         emit(Unauthenticated());
       }

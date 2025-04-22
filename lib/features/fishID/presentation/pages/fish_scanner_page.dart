@@ -1,20 +1,16 @@
-// fishID/presentation/pages/fish_scanner_page.dart
-
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fyp/features/fishID/domain/entities/scan_result.dart';
 import 'package:fyp/features/fishID/presentation/cubits/scan_cubit.dart';
 import 'package:fyp/features/fishID/presentation/cubits/scan_state.dart';
+import 'package:fyp/features/fishID/domain/entities/scan_result.dart';
+import 'package:fyp/features/post/presentation/components/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:fyp/features/fishID/data/service/image_validator.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 
 class FishScannerPage extends StatefulWidget {
-  final String uid; // current user ID
-
+  final String uid;
   const FishScannerPage({super.key, required this.uid});
 
   @override
@@ -23,144 +19,188 @@ class FishScannerPage extends StatefulWidget {
 
 class _FishScannerPageState extends State<FishScannerPage> {
   File? selectedImage;
+  ScanResult? scanResult;
 
-  // Pick image from camera or gallery
-  Future<void> pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: source);
+  Future<void> pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedFile == null) return;
 
-    if (image != null) {
-      final originalFile = File(image.path);
-      final isValid = await validateFishImage(originalFile);
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: pickedFile.path,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Photo',
+          toolbarColor: Colors.black,
+          toolbarWidgetColor: Colors.white,
+          backgroundColor: Colors.black,
+          dimmedLayerColor: Colors.black87,
+          activeControlsWidgetColor: Colors.tealAccent,
+          cropGridColor: Colors.white30,
+          cropFrameColor: Colors.tealAccent,
+        ),
+        IOSUiSettings(title: 'Crop Photo', aspectRatioLockEnabled: true),
+      ],
+    );
 
-      if (!isValid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("❌ Invalid image. Must be JPEG and under 5MB."),
-          ),
-        );
-        return;
-      }
-
-      // Compress if needed
-      File fileToUpload = originalFile;
-      final size = await originalFile.length();
-      if (size > 5 * 1024 * 1024) {
-        fileToUpload = await compressImage(originalFile);
-        print("📦 Image compressed before upload");
-      }
-
-      if (!fileToUpload.existsSync()) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("⚠️ Selected image is corrupted or missing."),
-          ),
-        );
-        return;
-      }
-      // ✅ show live preview
-      context.read<ScanCubit>().scanFish(fileToUpload, widget.uid);
+    if (croppedFile != null) {
+      setState(() {
+        selectedImage = File(croppedFile.path);
+        scanResult = null;
+      });
     }
   }
 
-  // Compress image method
-  Future<File> compressImage(File file) async {
-    final dir = await getTemporaryDirectory();
-    final targetPath = p.join(
-      dir.path,
-      "compressed_${DateTime.now().millisecondsSinceEpoch}.jpg",
-    );
-
-    final XFile? result = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      targetPath,
-      quality: 75,
-      format: CompressFormat.jpeg,
-    );
-
-    return result != null ? File(result.path) : file;
+  Future<void> _scanImage() async {
+    if (selectedImage != null) {
+      context.read<ScanCubit>().scanFish(selectedImage!, widget.uid);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('🎣 Fish Identifier')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: BlocBuilder<ScanCubit, ScanState>(
-          builder: (context, state) {
-            if (state is ScanLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state is ScanError) {
-              return Center(
-                child: Text(
-                  "❌ Error: ${state.message}",
-                  style: const TextStyle(color: Colors.red),
-                ),
-              );
-            }
-
-            if (state is ScanSuccess) {
-              return SingleChildScrollView(child: _buildResult(state.result));
-            }
-
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      appBar: AppBar(title: const Text("🎣 Fish Identifier")),
+      body: BlocConsumer<ScanCubit, ScanState>(
+        listener: (context, state) {
+          if (state is ScanSuccess) {
+            setState(() => scanResult = state.result);
+          }
+        },
+        builder: (context, state) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  "Upload or take a photo of a fish",
-                  style: TextStyle(fontSize: 18),
+                GestureDetector(
+                  onTap: pickImage,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      height: 250,
+                      color: Colors.grey[200],
+                      child:
+                          selectedImage != null
+                              ? Image.file(selectedImage!, fit: BoxFit.cover)
+                              : const Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.add_photo_alternate,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      "Tap to select image",
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () => pickImage(ImageSource.gallery),
-                  icon: const Icon(Icons.photo_library),
-                  label: const Text("Pick from Gallery"),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  onPressed: () => pickImage(ImageSource.camera),
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text("Take a Photo"),
-                ),
+
+                if (selectedImage != null && state is! ScanLoading)
+                  ElevatedButton.icon(
+                    onPressed: _scanImage,
+                    icon: const Icon(Icons.search),
+                    label: const Text("Scan with AI"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 20,
+                      ),
+                      textStyle: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+
+                if (state is ScanLoading) ...[
+                  const SizedBox(height: 30),
+                  const Center(child: CircularProgressIndicator()),
+                ],
+
+                if (scanResult != null) ...[
+                  const SizedBox(height: 30),
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "✅ Identification Result",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.teal,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildInfoRow(
+                            "Common Name:",
+                            scanResult!.commonName,
+                            Icons.pets,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildInfoRow(
+                            "Scientific Name:",
+                            scanResult!.speciesName,
+                            Icons.science,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildInfoRow(
+                            "Confidence:",
+                            "${(scanResult!.confidence * 100).toStringAsFixed(2)}%",
+                            Icons.percent,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  // Build scanned result UI
-  Widget _buildResult(ScanResult result) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _buildInfoRow(String label, String value, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "✅ Fish Identified:",
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 10),
-        Text("Species: ${result.speciesName}"),
-        Text("Confidence: ${(result.confidence * 100).toStringAsFixed(2)}%"),
-        const SizedBox(height: 20),
-        if (selectedImage != null && selectedImage!.path.isNotEmpty)
-          Image.file(selectedImage!, height: 300, fit: BoxFit.cover)
-        else
-          const Text("❗ Image preview not available"),
-
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () {
-            setState(() {
-              selectedImage = null;
-              context.read<ScanCubit>().reset();
-            });
-          },
-          icon: const Icon(Icons.restart_alt),
-          label: const Text("Scan Another"),
+        Icon(icon, size: 20, color: Colors.grey[700]),
+        const SizedBox(width: 10),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+              children: [
+                TextSpan(
+                  text: "$label ",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                TextSpan(text: value),
+              ],
+            ),
+          ),
         ),
       ],
     );

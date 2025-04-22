@@ -11,8 +11,21 @@ class PostDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post Detail'),
-        leading: BackButton(onPressed: () => Navigator.pop(context)),
+        centerTitle: true,
+        title: Text(
+          'Post Detail',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
+        automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
         child: PostTile(
