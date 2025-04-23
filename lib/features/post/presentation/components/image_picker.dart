@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -16,8 +17,8 @@ class ImagePickerModal {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      backgroundColor: Colors.black,
       isScrollControlled: true,
+
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(20.0),
@@ -33,10 +34,10 @@ class ImagePickerModal {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const Text(
+              Text(
                 "All Photos",
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.inversePrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -47,50 +48,59 @@ class ImagePickerModal {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.photo_camera,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.inversePrimary,
                           size: 28,
                         ),
-                        onPressed: () {
-                          // Implement camera support here if needed
+                        onPressed: () async {
+                          final picker = ImagePicker();
+                          final picked = await picker.pickImage(
+                            source: ImageSource.camera,
+                          );
+                          if (picked != null) {
+                            final croppedFile = await _cropImage(picked.path);
+                            if (croppedFile != null) {
+                              final isValid = await _validateImage(
+                                File(croppedFile.path),
+                              );
+                              if (!isValid) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "❌ Invalid image. Must be JPEG and under 5MB.",
+                                    ),
+                                  ),
+                                );
+                                Navigator.pop(context);
+                                return;
+                              }
+                              finalImage = await _compressImage(
+                                File(croppedFile.path),
+                              );
+                            }
+                          }
                           Navigator.pop(context);
                         },
                       ),
-                      const Text(
+                      Text(
                         "TAKE PHOTO",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.videocam,
-                          color: Colors.white,
-                          size: 28,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                          fontSize: 12,
                         ),
-                        onPressed: () {
-                          // Video not supported here
-                          Navigator.pop(context);
-                        },
-                      ),
-                      const Text(
-                        "TAKE VIDEO",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              const Divider(color: Colors.grey),
+              Divider(color: Theme.of(context).colorScheme.inversePrimary),
               const SizedBox(height: 10),
-              const Icon(
+              Icon(
                 Icons.photo_library_outlined,
                 size: 60,
-                color: Colors.white54,
+                color: Theme.of(context).colorScheme.inversePrimary,
               ),
               const SizedBox(height: 10),
               OutlinedButton(
@@ -100,31 +110,37 @@ class ImagePickerModal {
                     source: ImageSource.gallery,
                   );
                   if (picked != null) {
-                    final original = File(picked.path);
-                    final isValid = await _validateImage(original);
-                    if (!isValid) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            "❌ Invalid image. Must be JPEG and under 5MB.",
-                          ),
-                        ),
+                    final croppedFile = await _cropImage(picked.path);
+                    if (croppedFile != null) {
+                      final isValid = await _validateImage(
+                        File(croppedFile.path),
                       );
-                      Navigator.pop(context);
-                      return;
+                      if (!isValid) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "❌ Invalid image. Must be JPEG and under 5MB.",
+                            ),
+                          ),
+                        );
+                        Navigator.pop(context);
+                        return;
+                      }
+                      finalImage = await _compressImage(File(croppedFile.path));
                     }
-
-                    final compressed = await _compressImage(original);
-                    finalImage = compressed;
                   }
                   Navigator.pop(context);
                 },
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.tealAccent),
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
-                child: const Text(
+                child: Text(
                   "Select Image",
-                  style: TextStyle(color: Colors.tealAccent),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -137,18 +153,35 @@ class ImagePickerModal {
     return finalImage;
   }
 
-  //Validate: must be JPEG and under 5MB
+  static Future<CroppedFile?> _cropImage(String imagePath) {
+    return ImageCropper().cropImage(
+      sourcePath: imagePath,
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Photo',
+          toolbarColor: Colors.black,
+          toolbarWidgetColor: Colors.white,
+          backgroundColor: Colors.black,
+          dimmedLayerColor: Colors.black87,
+          activeControlsWidgetColor: Colors.tealAccent,
+          cropGridColor: Colors.white30,
+          cropFrameColor: Colors.tealAccent,
+        ),
+        IOSUiSettings(title: 'Crop Photo', aspectRatioLockEnabled: true),
+      ],
+    );
+  }
+
   static Future<bool> _validateImage(File file) async {
     if (!await file.exists()) return false;
-    if ((await file.length()) > 5 * 1024 * 1024) return false;
+    if ((await file.length()) > 5 * 1024 * 1024) return false; // >5MB
     final mime = lookupMimeType(file.path);
     if (mime != 'image/jpeg') return false;
-
     final decoded = img.decodeImage(await file.readAsBytes());
     return decoded != null;
   }
 
-  // Compress image to JPEG with 75% quality
   static Future<File> _compressImage(File file) async {
     final dir = await getTemporaryDirectory();
     final targetPath = p.join(

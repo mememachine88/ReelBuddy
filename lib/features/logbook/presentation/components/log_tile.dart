@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../domain/entities/logbook_entry.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,8 +39,11 @@ class LogbookTile extends StatelessWidget {
                       width: 70,
                       height: 70,
                       color: Colors.grey[800],
-                      child: const Center(
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                      child: Center(
+                        child: LoadingAnimationWidget.dotsTriangle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                          size: 70,
+                        ),
                       ),
                     ),
                 errorWidget:

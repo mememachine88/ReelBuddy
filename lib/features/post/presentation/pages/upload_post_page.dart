@@ -15,6 +15,7 @@ import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/post/presentation/cubits/post_states.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class UploadPostPage extends StatefulWidget {
   const UploadPostPage({super.key});
@@ -50,26 +51,23 @@ class _UploadPostPageState extends State<UploadPostPage> {
 
   //pick image
   Future<void> pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
-
-    if (pickedFile != null) {
+    final picked = await ImagePickerModal.show(context);
+    if (picked != null) {
       final croppedFile = await ImageCropper().cropImage(
-        sourcePath: pickedFile.path,
+        sourcePath: picked.path,
         aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: 'Crop Photo',
-            toolbarColor: Colors.black,
-            toolbarWidgetColor: Colors.white,
-            statusBarColor: Colors.black,
+            toolbarColor: Colors.white,
+            toolbarWidgetColor: Colors.black,
+            statusBarColor: Colors.white,
             backgroundColor: Colors.black,
-            dimmedLayerColor: Colors.black87, // dark overlay behind image
-            activeControlsWidgetColor: Colors.tealAccent, // sliders & buttons
+            dimmedLayerColor: Colors.black87,
+            activeControlsWidgetColor: Colors.tealAccent,
             cropGridColor: Colors.white30,
             cropFrameColor: Colors.tealAccent,
-            showCropGrid: true, // or false if you want a cleaner look
+            showCropGrid: true,
             hideBottomControls: false,
             initAspectRatio: CropAspectRatioPreset.square,
             lockAspectRatio: true,
@@ -80,7 +78,6 @@ class _UploadPostPageState extends State<UploadPostPage> {
 
       if (croppedFile != null) {
         final file = File(croppedFile.path);
-
         setState(() {
           imagePickedFile = PlatformFile(
             name: file.path.split('/').last,
@@ -138,8 +135,13 @@ class _UploadPostPageState extends State<UploadPostPage> {
     return BlocConsumer<PostCubit, PostState>(
       builder: (context, state) {
         if (state is PostUploading || state is PostLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: Center(
+              child: LoadingAnimationWidget.dotsTriangle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                size: 70,
+              ),
+            ),
           );
         }
 
@@ -160,21 +162,31 @@ class _UploadPostPageState extends State<UploadPostPage> {
   //BUild upload page
   Widget buildUploadPage() {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 100,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.close, color: Colors.white),
+          icon: Icon(
+            Icons.close,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Create Post", style: TextStyle(color: Colors.white)),
+        title: Text(
+          "Create Post",
+          style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
+        ),
         centerTitle: true,
         actions: [
           TextButton(
             onPressed: uploadPost,
-            child: const Text("Done", style: TextStyle(color: Colors.white)),
+            child: Text(
+              "Done",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+            ),
           ),
         ],
       ),
@@ -196,15 +208,17 @@ class _UploadPostPageState extends State<UploadPostPage> {
                       // User info
                       Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 30,
-                            backgroundColor: Colors.grey,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
                           ),
                           const SizedBox(width: 20),
                           Text(
                             currentUser?.username ?? 'Unknown',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -226,10 +240,13 @@ class _UploadPostPageState extends State<UploadPostPage> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.location_on,
                                       size: 18,
-                                      color: Colors.tealAccent,
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.inversePrimary,
                                     ),
                                     const SizedBox(width: 6),
                                     Expanded(
@@ -237,8 +254,11 @@ class _UploadPostPageState extends State<UploadPostPage> {
                                         shareLocation
                                             ? "$selectedLocation\n(${selectedLat?.toStringAsFixed(5)}, ${selectedLng?.toStringAsFixed(5)})"
                                             : selectedLocation ?? "",
-                                        style: const TextStyle(
-                                          color: Colors.white70,
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.inversePrimary,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -266,14 +286,17 @@ class _UploadPostPageState extends State<UploadPostPage> {
                       Expanded(
                         child: TextField(
                           controller: textController,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
                             fontSize: 20,
                           ),
                           maxLines: null,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             hintText: "Tell us about something...",
-                            hintStyle: TextStyle(color: Colors.white54),
+                            hintStyle: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -294,19 +317,21 @@ class _UploadPostPageState extends State<UploadPostPage> {
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: Colors.black,
+
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.alternate_email, color: Colors.white),
               IconButton(
-                icon: Icon(Icons.image, color: Colors.white),
+                icon: Icon(
+                  Icons.image,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
                 onPressed: pickImage,
               ),
               IconButton(
                 icon: Icon(
                   CupertinoIcons.location_circle_fill,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.inversePrimary,
                 ),
                 onPressed: () async {
                   final result = await LocationPickerModal.show(context);
@@ -323,7 +348,10 @@ class _UploadPostPageState extends State<UploadPostPage> {
 
               /// 👇 Keyboard dismiss icon
               IconButton(
-                icon: Icon(Icons.keyboard_hide, color: Colors.white),
+                icon: Icon(
+                  Icons.keyboard_hide,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
                 onPressed: () => FocusScope.of(context).unfocus(),
               ),
             ],

@@ -4,6 +4,7 @@ import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/notifications/presentation/components/notification_tile.dart';
 import 'package:fyp/features/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:fyp/features/notifications/presentation/cubit/notification_state.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -44,7 +45,12 @@ class _NotificationPageState extends State<NotificationPage> {
       body: BlocBuilder<NotificationCubit, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: LoadingAnimationWidget.dotsTriangle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                size: 70,
+              ),
+            );
           }
 
           if (state is NotificationError) {

@@ -11,6 +11,7 @@ import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class EditProfilePage extends StatefulWidget {
   final ProfileUser user;
@@ -219,12 +220,15 @@ class _EditProfilePage extends State<EditProfilePage> {
       },
       builder: (context, state) {
         if (state is ProfileLoading) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
+                  LoadingAnimationWidget.dotsTriangle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    size: 70,
+                  ),
                   SizedBox(height: 16),
                   Text("Updating profile..."),
                 ],
@@ -284,7 +288,14 @@ class _EditProfilePage extends State<EditProfilePage> {
                               imageUrl: widget.user.profileImageUrl,
                               placeholder:
                                   (context, url) =>
-                                      const CircularProgressIndicator(),
+                                      LoadingAnimationWidget.dotsTriangle(
+                                        color:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.inversePrimary,
+                                        size: 70,
+                                      ),
+
                               errorWidget:
                                   (context, url, error) => Icon(
                                     Icons.person,

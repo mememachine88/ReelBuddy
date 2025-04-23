@@ -16,6 +16,7 @@ import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
 import 'package:fyp/features/profile/presentation/pages/profile_page.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class PostTile extends StatefulWidget {
   final Post post;
@@ -138,11 +139,13 @@ class _PostTileState extends State<PostTile> {
       context: context,
       builder:
           (context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.primary,
             title: Text(
               "Add a new comment",
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
             ),
-            backgroundColor: Theme.of(context).colorScheme.secondary,
             content: MyTextField(
               controller: commentTextController,
               hintText: "Add a comment",
@@ -153,7 +156,12 @@ class _PostTileState extends State<PostTile> {
               //cancel button
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text("Cancel"),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
               ),
 
               //save button
@@ -162,7 +170,12 @@ class _PostTileState extends State<PostTile> {
                   addComment();
                   Navigator.of(context).pop();
                 },
-                child: Text("Save"),
+                child: Text(
+                  "Save",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
               ),
             ],
           ),
@@ -516,7 +529,12 @@ class _PostTileState extends State<PostTile> {
                   },
                 );
               } else if (state is PostLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(
+                  child: LoadingAnimationWidget.dotsTriangle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                    size: 70,
+                  ),
+                );
               } else if (state is PostError) {
                 return Center(child: Text(state.message));
               } else {

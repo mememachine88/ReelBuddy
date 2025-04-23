@@ -33,33 +33,50 @@ class FishingSpotPopup extends StatelessWidget {
                 height: 300,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white24),
-                  color: Colors.white10,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
                 alignment: Alignment.center,
-                child: const Text(
+                child: Text(
                   'No image posted for this spot',
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 24,
+                  ),
                 ),
               ),
             const SizedBox(height: 12),
             Text(
               spot.description,
-              style: const TextStyle(fontSize: 14, color: Colors.white),
+              style: TextStyle(
+                fontSize: 18,
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
             ),
             const SizedBox(height: 10),
             Text(
               'Lat: ${spot.lat.toStringAsFixed(4)}',
-              style: const TextStyle(color: Colors.white60),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontSize: 16,
+              ),
             ),
             Text(
               'Lng: ${spot.lng.toStringAsFixed(4)}',
-              style: const TextStyle(color: Colors.white60),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               'Shared by: ${spot.username ?? "Anonymous"}',
-              style: const TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                fontSize: 14,
+              ),
             ),
           ],
         ),

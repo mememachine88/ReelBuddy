@@ -19,3 +19,5 @@ class LogbookError extends LogbookState {
   final String message;
   LogbookError(this.message);
 }
+
+class LogbookSubmitting extends LogbookState {}

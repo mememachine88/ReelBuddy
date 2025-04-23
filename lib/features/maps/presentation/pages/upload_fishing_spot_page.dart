@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fyp/features/post/presentation/components/image_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:file_picker/file_picker.dart';
@@ -39,38 +40,36 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
   }
 
   Future<void> pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile == null) return;
+    final picked = await ImagePickerModal.show(context);
+    if (picked != null) {
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Photo',
+            toolbarColor: Colors.white,
+            toolbarWidgetColor: Colors.black,
+            backgroundColor: Colors.white,
+            dimmedLayerColor: Colors.black,
+            activeControlsWidgetColor: Colors.tealAccent,
+            cropGridColor: Colors.white30,
+            cropFrameColor: Colors.tealAccent,
+          ),
+          IOSUiSettings(title: 'Crop Photo', aspectRatioLockEnabled: true),
+        ],
+      );
 
-    final croppedFile = await ImageCropper().cropImage(
-      sourcePath: pickedFile.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Photo',
-          toolbarColor: Colors.black,
-          toolbarWidgetColor: Colors.white,
-          backgroundColor: Colors.black,
-          dimmedLayerColor: Colors.black87,
-          activeControlsWidgetColor: Colors.tealAccent,
-          cropGridColor: Colors.white30,
-          cropFrameColor: Colors.tealAccent,
-        ),
-        IOSUiSettings(title: 'Crop Photo', aspectRatioLockEnabled: true),
-      ],
-    );
-
-    if (croppedFile != null) {
-      final file = File(croppedFile.path);
-      setState(() {
-        imagePickedFile = PlatformFile(
-          name: file.path.split('/').last,
-          path: file.path,
-          size: file.lengthSync(),
-        );
-      });
+      if (croppedFile != null) {
+        final file = File(croppedFile.path);
+        setState(() {
+          imagePickedFile = PlatformFile(
+            name: file.path.split('/').last,
+            path: file.path,
+            size: file.lengthSync(),
+          );
+        });
+      }
     }
   }
 
@@ -110,24 +109,32 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         toolbarHeight: 100,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: Icon(
+            Icons.close,
+            color: Theme.of(context).colorScheme.inversePrimary,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Mark a Fishing Spot",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.inversePrimary),
         ),
         centerTitle: true,
         actions: [
           TextButton(
             onPressed: uploadFishingSpot,
-            child: const Text("Done", style: TextStyle(color: Colors.white)),
+            child: Text(
+              "Done",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+            ),
           ),
         ],
       ),
@@ -155,8 +162,9 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
                           const SizedBox(width: 20),
                           Text(
                             currentUser?.username ?? 'Unknown',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -182,16 +190,24 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
                           padding: const EdgeInsets.only(top: 10),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.location_on,
                                 size: 18,
-                                color: Colors.tealAccent,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.inversePrimary,
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   "$selectedLocation\n(${selectedLat?.toStringAsFixed(5)}, ${selectedLng?.toStringAsFixed(5)})",
-                                  style: const TextStyle(color: Colors.white70),
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.inversePrimary,
+                                  ),
                                 ),
                               ),
                             ],
@@ -203,14 +219,17 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
                       Expanded(
                         child: TextField(
                           controller: textController,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
                             fontSize: 20,
                           ),
                           maxLines: null,
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             hintText: "Tell us about the spot...",
-                            hintStyle: TextStyle(color: Colors.white54),
+                            hintStyle: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -230,19 +249,21 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.primary,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.alternate_email, color: Colors.white),
               IconButton(
-                icon: const Icon(Icons.image, color: Colors.white),
+                icon: Icon(
+                  Icons.image,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
                 onPressed: pickImage,
               ),
               IconButton(
-                icon: const Icon(
+                icon: Icon(
                   CupertinoIcons.location_circle_fill,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.inversePrimary,
                 ),
                 onPressed: () async {
                   final result = await LocationPickerModal.show(context);
@@ -257,7 +278,10 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
                 },
               ),
               IconButton(
-                icon: const Icon(Icons.keyboard_hide, color: Colors.white),
+                icon: Icon(
+                  Icons.keyboard_hide,
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                ),
                 onPressed: () => FocusScope.of(context).unfocus(),
               ),
             ],

@@ -81,7 +81,12 @@ class SOSAlertPopup extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text("Dismiss"),
+          child: Text(
+            "Dismiss",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
         ),
       ],
     );

@@ -19,10 +19,13 @@ class LogbookCubit extends Cubit<LogbookState> {
   }
 
   Future<void> addEntry(LogbookEntry entry) async {
+    emit(LogbookSubmitting()); //Emit submitting instead of loading
     try {
       await logbookRepo.addEntry(entry);
       emit(LogbookEntryAdded());
-      await loadEntries(entry.uid);
+      await loadEntries(
+        entry.uid,
+      ); // Will trigger LogbookLoading + LogbookLoaded
     } catch (e) {
       emit(LogbookError("Failed to add entry: $e"));
     }

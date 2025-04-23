@@ -39,8 +39,10 @@ class _CommentTileState extends State<CommentTile> {
       builder:
           (context) => AlertDialog(
             title: Text(
-              "Delete Post?",
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              "Delete Comment?",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
             ),
             actions: [
               //cancel button
@@ -49,7 +51,7 @@ class _CommentTileState extends State<CommentTile> {
                 child: Text(
                   "Cancel",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
               ),
@@ -66,7 +68,7 @@ class _CommentTileState extends State<CommentTile> {
                 child: Text(
                   "Delete",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
               ),

@@ -13,7 +13,7 @@ class LocationPickerModal {
     return await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.black,
+
       enableDrag: false,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -93,9 +93,12 @@ class LocationPickerModal {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "Select Post Position",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            fontSize: 16,
+                          ),
                         ),
                         TextButton(
                           onPressed: () async {
@@ -109,9 +112,12 @@ class LocationPickerModal {
                               "useSearchName": useSearchName,
                             });
                           },
-                          child: const Text(
+                          child: Text(
                             "Done",
-                            style: TextStyle(color: Colors.tealAccent),
+                            style: TextStyle(
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
                           ),
                         ),
                       ],
@@ -152,8 +158,10 @@ class LocationPickerModal {
                       width: 140,
                       child: ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.tealAccent,
-                          foregroundColor: Colors.black,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.inversePrimary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.primary,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
@@ -209,11 +217,11 @@ class LocationPickerModal {
                           myLocationEnabled: true,
                           zoomControlsEnabled: false,
                         ),
-                        const Center(
+                        Center(
                           child: Icon(
                             Icons.location_on,
                             size: 40,
-                            color: Colors.tealAccent,
+                            color: Color(0xFF00FFFF),
                           ),
                         ),
                         // Coordinates + name overlay

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +11,9 @@ import 'package:fyp/features/weather/presentation/components/weather_search.dart
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../cubit/map_cubit.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MapPage extends StatefulWidget {
   final TabController? externalTabController;
@@ -123,7 +124,12 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   Widget buildMap(bool showTackleShops) {
     return userLocation == null
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(
+          child: LoadingAnimationWidget.dotsTriangle(
+            color: Theme.of(context).colorScheme.inversePrimary,
+            size: 70,
+          ),
+        )
         : BlocBuilder<MapCubit, MapState>(
           builder: (context, state) {
             final contextState = context.read<MapCubit>().state;
@@ -179,7 +185,9 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
               ),
               onMapCreated: (controller) => mapController = controller,
               myLocationEnabled: true,
+              myLocationButtonEnabled: false,
               markers: markersWithTap,
+              zoomControlsEnabled: false,
             );
           },
         );
@@ -197,7 +205,7 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
             children: [buildMap(true), buildMap(false)],
           ),
 
-          // 🔍 Location Search Overlay
+          // Location Search Overlay
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 16,
@@ -242,8 +250,9 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
           //Floating buttons
           //Floating buttons with center location
+          SizedBox(height: 30),
           Positioned(
-            top: 100,
+            top: 550,
             right: 16,
             child: Column(
               children: [
@@ -255,7 +264,7 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   onPressed: () {
                     setState(() => _tabController.index = 0);
                   },
-                  child: const Icon(Icons.shopping_bag),
+                  child: FaIcon(FontAwesomeIcons.cartShopping),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(
@@ -266,7 +275,7 @@ class MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   onPressed: () {
                     setState(() => _tabController.index = 1);
                   },
-                  child: const Icon(Icons.location_pin),
+                  child: FaIcon(FontAwesomeIcons.fish),
                 ),
                 const SizedBox(height: 12),
                 FloatingActionButton(

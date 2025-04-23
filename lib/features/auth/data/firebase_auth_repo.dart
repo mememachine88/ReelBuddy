@@ -1,3 +1,5 @@
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:fyp/features/auth/domain/entities/app_user.dart';
 import 'package:fyp/features/auth/domain/repo/auth_repo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -36,7 +38,20 @@ class FirebaseAuthRepo implements AuthRepo {
     }
   }
 
-  @override
+  Future<String> _uploadDefaultProfileImage(String uid) async {
+    // Load the image bytes from assets
+    final byteData = await rootBundle.load('assets/blank_profile.png');
+    final imageBytes = byteData.buffer.asUint8List();
+
+    // Upload to Firebase Storage
+    final ref = FirebaseStorage.instance.ref().child('profile_images/$uid.png');
+    await ref.putData(imageBytes, SettableMetadata(contentType: 'image/png'));
+
+    // Get the download URL
+    final downloadUrl = await ref.getDownloadURL();
+    return downloadUrl;
+  }
+
   @override
   Future<AppUser?> registerWithEmailPassword(
     String name,
@@ -48,6 +63,8 @@ class FirebaseAuthRepo implements AuthRepo {
       // Attempt to sign up
       UserCredential userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
+      final uid = userCredential.user!.uid;
+      final profileImageUrl = await _uploadDefaultProfileImage(uid);
 
       // Store user information in Firestore
       await firestore.collection('users').doc(userCredential.user!.uid).set({
@@ -55,6 +72,7 @@ class FirebaseAuthRepo implements AuthRepo {
         'email': email,
         'name': name,
         'username': username,
+        'profileImageUrl': profileImageUrl,
         'createdAt': FieldValue.serverTimestamp(), // Timestamp for registration
       });
 

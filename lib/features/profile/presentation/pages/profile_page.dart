@@ -23,6 +23,7 @@ import 'package:fyp/features/maps/presentation/pages/upload_fishing_spot_page.da
 import 'package:fyp/features/logbook/presentation/pages/stats_page.dart';
 import 'package:fyp/features/logbook/presentation/cubits/logbook_cubit.dart';
 import 'package:fyp/features/logbook/presentation/cubits/logbook_state.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ProfilePage extends StatefulWidget {
   final String uid;
@@ -121,8 +122,15 @@ class _ProfilePageState extends State<ProfilePage> {
     return BlocBuilder<ProfileCubit, ProfileState>(
       builder: (context, profileState) {
         if (profileState is ProfileLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: SizedBox.expand(
+              child: Center(
+                child: LoadingAnimationWidget.dotsTriangle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  size: 70,
+                ),
+              ),
+            ),
           );
         } else if (profileState is ProfileLoaded) {
           final user = profileState.profile;
@@ -171,7 +179,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                 fit: BoxFit.cover,
                                 placeholder:
                                     (context, url) =>
-                                        const CircularProgressIndicator(),
+                                        LoadingAnimationWidget.dotsTriangle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.inversePrimary,
+                                          size: 70,
+                                        ),
                                 errorWidget:
                                     (context, url, error) => Icon(
                                       Icons.person,
@@ -256,10 +270,48 @@ class _ProfilePageState extends State<ProfilePage> {
                                               ),
                                             );
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                Theme.of(
+                                                  context,
+                                                ).colorScheme.inversePrimary,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+
                                           child: const Text("Edit Profile"),
                                         )
                                         : ElevatedButton(
                                           onPressed: followButtonPressed,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor:
+                                                user.followers.contains(
+                                                      currentUser!.uid,
+                                                    )
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .secondary // Unfollow = dark grey
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .inversePrimary,
+                                            // Follow = bright color
+                                            foregroundColor:
+                                                user.followers.contains(
+                                                      currentUser!.uid,
+                                                    )
+                                                    ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary
+                                                    : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
                                           child: Text(
                                             user.followers.contains(
                                                   currentUser!.uid,
@@ -297,12 +349,23 @@ class _ProfilePageState extends State<ProfilePage> {
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text("Failed to load stats"),
                                         ),
                                       );
                                     }
                                   },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.inversePrimary,
+                                    foregroundColor:
+                                        Theme.of(context).colorScheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -347,8 +410,16 @@ class _ProfilePageState extends State<ProfilePage> {
                                 },
                               );
                             } else if (state is PostLoading) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
+                              return Scaffold(
+                                body: SizedBox.expand(
+                                  child: Center(
+                                    child: LoadingAnimationWidget.dotsTriangle(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      size: 70,
+                                    ),
+                                  ),
+                                ),
                               );
                             } else {
                               return const Center(child: Text("No posts yet"));

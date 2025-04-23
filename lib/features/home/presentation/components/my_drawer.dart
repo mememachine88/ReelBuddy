@@ -25,7 +25,7 @@ class MyDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.secondary,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30.0),
         child: SafeArea(
@@ -39,7 +39,7 @@ class MyDrawer extends StatelessWidget {
               ),
 
               // Divider line
-              Divider(color: Theme.of(context).colorScheme.tertiary),
+              Divider(color: Theme.of(context).colorScheme.primary),
               const SizedBox(height: 20), // Spacing after the icon
               // Drawer tiles
               MyDrawerTile(
@@ -237,18 +237,6 @@ class MyDrawer extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const SearchPage(),
-                      ),
-                    ),
-              ),
-
-              MyDrawerTile(
-                title: "S E T T I N G S",
-                svgIconPath: "assets/settings.svg",
-                onTap:
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsPage(),
                       ),
                     ),
               ),

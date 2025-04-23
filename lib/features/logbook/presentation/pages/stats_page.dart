@@ -11,7 +11,23 @@ class StatsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text("Statistics")),
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text(
+            'Catch Statistics',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(15),
+              bottomRight: Radius.circular(15),
+            ),
+          ),
+          automaticallyImplyLeading: true,
+        ),
         body: const Center(child: Text("No data to show")),
       );
     }
@@ -30,13 +46,27 @@ class StatsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Fishing Statistics", style: TextStyle(fontSize: 22)),
+        centerTitle: true,
+        title: Text(
+          'Fishing Stats',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
+        automaticallyImplyLeading: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 🏆 Highlights Box
+            // Highlights Box
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(

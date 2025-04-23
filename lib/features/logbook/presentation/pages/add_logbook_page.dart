@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fyp/main.dart';
 import 'package:fyp/utils/fish_species_loader.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,6 +15,7 @@ import 'package:fyp/features/logbook/presentation/cubits/logbook_cubit.dart';
 import 'package:fyp/features/logbook/presentation/cubits/logbook_state.dart';
 import 'package:fyp/features/post/presentation/components/image_picker.dart';
 import 'package:fyp/features/post/presentation/components/location_picker.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class AddCatchPage extends StatefulWidget {
   final String uid;
@@ -36,88 +38,135 @@ class _AddCatchPageState extends State<AddCatchPage> {
   File? selectedImage;
   String? scannedScientificName;
   bool isSubmitting = false;
+  bool isScanning = false;
 
   Future<void> _pickImage() async {
     final image = await ImagePickerModal.show(context);
-    debugPrint("🧪 Picked image: ${image?.path}");
     if (image != null) {
       setState(() => selectedImage = image);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("❌ Failed to load image.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("\u274c Failed to load image.")),
+      );
     }
   }
 
   Future<void> _pickLocation() async {
     final result = await LocationPickerModal.show(context);
     if (result != null && result['name'] != null) {
-      setState(() {
-        locationController.text = result['name'];
-      });
+      setState(() => locationController.text = result['name']);
     }
+  }
+
+  Future<void> _scanImage() async {
+    if (selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select an image first.")),
+      );
+      return;
+    }
+
+    setState(() => isScanning = true);
+
+    final isValid = await validateFishImage(selectedImage!);
+    if (!isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Invalid image. Use a clear JPEG under 5MB."),
+        ),
+      );
+      setState(() => isScanning = false);
+      return;
+    }
+
+    final scanCubit = context.read<ScanCubit>();
+    await scanCubit.scanFish(selectedImage!, widget.uid);
+    final scanState = scanCubit.state;
+
+    if (scanState is ScanSuccess) {
+      final scannedName = scanState.result.commonName.trim();
+      scannedScientificName = scanState.result.speciesName;
+      speciesController.text =
+          scannedName.isNotEmpty ? scannedName : "Unknown Fish";
+    } else if (scanState is ScanError) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("\u274c ${scanState.message}")));
+    }
+
+    setState(() => isScanning = false);
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState == null || !_formKey.currentState!.validate())
+      return;
 
-    String speciesName = speciesController.text;
+    // Set submitting state immediately to disable button
+    setState(() => isSubmitting = true);
 
-    if (speciesName.isEmpty && selectedImage != null) {
-      final isValid = await validateFishImage(selectedImage!);
-      if (!isValid) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Invalid image. Use a clear JPEG under 5MB."),
-          ),
-        );
-        return;
-      }
+    try {
+      String speciesName = speciesController.text;
 
-      final scanCubit = context.read<ScanCubit>();
-      await scanCubit.scanFish(selectedImage!, widget.uid);
-      final scanState = scanCubit.state;
-      if (scanState is ScanSuccess) {
-        speciesName =
-            scanState.result.commonName.trim().isEmpty
-                ? "Unknown Fish"
-                : scanState.result.commonName;
-        speciesController.text = speciesName;
-        scannedScientificName = scanState.result.speciesName;
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Scan failed: ${scanState is ScanError ? scanState.message : 'Unknown error'}",
+      if (speciesName.isEmpty && selectedImage != null) {
+        final isValid = await validateFishImage(selectedImage!);
+        if (!isValid) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Invalid image. Use a clear JPEG under 5MB."),
             ),
-          ),
-        );
-        return;
+          );
+          setState(() => isSubmitting = false);
+          return;
+        }
+
+        final scanCubit = context.read<ScanCubit>();
+        await scanCubit.scanFish(selectedImage!, widget.uid);
+        final scanState = scanCubit.state;
+
+        if (scanState is ScanSuccess) {
+          speciesName =
+              scanState.result.commonName.trim().isEmpty
+                  ? "Unknown Fish"
+                  : scanState.result.commonName;
+          speciesController.text = speciesName;
+          scannedScientificName = scanState.result.speciesName;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Scan failed: ${scanState is ScanError ? scanState.message : 'Unknown error'}",
+              ),
+            ),
+          );
+          setState(() => isSubmitting = false);
+          return;
+        }
       }
+
+      final entry = LogbookEntry(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        uid: widget.uid,
+        species: speciesName,
+        length: double.parse(lengthController.text),
+        weight: double.parse(weightController.text),
+        catchDate: selectedDate,
+        catchTime: selectedTime,
+        location: locationController.text,
+        imageUrl: selectedImage?.path,
+        isReleased: isReleased,
+      );
+
+      await context.read<LogbookCubit>().addEntry(entry);
+
+      // Note: We don't need to set isSubmitting = false here as the BlocListener
+      // will handle navigation away from this page on successful submission
+    } catch (e) {
+      // Handle any unexpected errors
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("\u274c Error: ${e.toString()}")));
+      setState(() => isSubmitting = false);
     }
-
-    final entry = LogbookEntry(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      uid: widget.uid,
-      species: speciesName,
-      length: double.parse(lengthController.text),
-      weight: double.parse(weightController.text),
-      catchDate: selectedDate,
-      catchTime: selectedTime,
-      location: locationController.text,
-      imageUrl: selectedImage?.path,
-      isReleased: isReleased,
-    );
-
-    context.read<LogbookCubit>().addEntry(entry);
-  }
-
-  List<String> fishSpeciesList = [];
-
-  @override
-  void initState() {
-    super.initState();
-    fishSpeciesList = globalFishSpeciesList;
   }
 
   @override
@@ -135,37 +184,33 @@ class _AddCatchPageState extends State<AddCatchPage> {
       listener: (context, state) {
         if (state is LogbookEntryAdded) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("🎣 Catch saved successfully")),
+            const SnackBar(
+              content: Text("\ud83c\udf3f Catch saved successfully"),
+            ),
           );
           Navigator.pop(context);
         } else if (state is LogbookError) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text("❌ ${state.message}")));
+          ).showSnackBar(SnackBar(content: Text("\u274c ${state.message}")));
+          // Make sure to reset the submitting state if there's an error
+          setState(() => isSubmitting = false);
         }
       },
       child: Scaffold(
         appBar: AppBar(
+          title: const Text("Add Your New Catch"),
           centerTitle: true,
-          title: Text(
-            'Add Your New Catch',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(15),
               bottomRight: Radius.circular(15),
             ),
           ),
-          automaticallyImplyLeading: true,
         ),
-
-        body: BlocBuilder<ScanCubit, ScanState>(
-          builder: (context, scanState) {
-            return SingleChildScrollView(
+        body: Stack(
+          children: [
+            SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Form(
                 key: _formKey,
@@ -176,9 +221,8 @@ class _AddCatchPageState extends State<AddCatchPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          color: Colors.grey[200],
                           height: 200,
-                          width: double.infinity,
+                          color: Colors.grey[200],
                           child:
                               selectedImage != null
                                   ? Image.file(
@@ -191,145 +235,71 @@ class _AddCatchPageState extends State<AddCatchPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12),
                     ElevatedButton.icon(
-                      onPressed: () async {
-                        if (selectedImage == null) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("Please select an image first."),
-                            ),
-                          );
-                          return;
-                        }
-
-                        final isValid = await validateFishImage(selectedImage!);
-                        if (!isValid) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                "Invalid image. Use a clear JPEG under 5MB.",
-                              ),
-                            ),
-                          );
-                          return;
-                        }
-
-                        final scanCubit = context.read<ScanCubit>();
-                        await scanCubit.scanFish(selectedImage!, widget.uid);
-                        final scanState = scanCubit.state;
-
-                        if (scanState is ScanSuccess) {
-                          final scannedName =
-                              scanState.result.commonName.trim();
-                          scannedScientificName = scanState.result.speciesName;
-
-                          if (scannedName.isNotEmpty) {
-                            if (fishSpeciesList.contains(scannedName)) {
-                              // ✅ Already in list: use it
-                              speciesController.text = scannedName;
-                            } else {
-                              // ❌ Not in list: add and select
-                              setState(() {
-                                fishSpeciesList.add(scannedName);
-                                speciesController.text = scannedName;
-                              });
-                            }
-                          } else {
-                            speciesController.text = "Unknown Fish";
-                          }
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Scan failed: ${scanState is ScanError ? scanState.message : 'Unknown error'}",
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.search),
-                      label: const Text("Scan with AI"),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        foregroundColor: Colors.white,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.secondary,
+                        foregroundColor: Theme.of(context).colorScheme.primary,
+                      ),
+                      onPressed: isScanning || isSubmitting ? null : _scanImage,
+                      icon:
+                          isScanning
+                              ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              )
+                              : const Icon(Icons.search),
+                      label: Text(
+                        "Scan with AI",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
-                    fishSpeciesList.isEmpty
-                        ? const CircularProgressIndicator()
-                        : Theme(
-                          data: Theme.of(context).copyWith(
-                            canvasColor: Colors.white, // dropdown background
-                            dropdownMenuTheme: DropdownMenuThemeData(
-                              menuStyle: MenuStyle(
-                                maximumSize: MaterialStateProperty.all(
-                                  const Size.fromHeight(100),
-                                ), // ✅ Max height
-                              ),
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButtonFormField<String>(
-                              value:
-                                  speciesController.text.isNotEmpty
-                                      ? speciesController.text
-                                      : null,
-                              isExpanded: true,
-                              menuMaxHeight: 150,
-                              decoration: const InputDecoration(
-                                labelText: "Species",
-                                prefixIcon: Icon(Icons.pets),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.all(
-                                    Radius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              items:
-                                  fishSpeciesList.map((species) {
-                                    return DropdownMenuItem<String>(
-                                      value: species,
-                                      child: Text(
-                                        species,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    );
-                                  }).toList(),
-                              onChanged: (String? selected) {
-                                speciesController.text = selected ?? '';
-                              },
-                              validator: (val) {
-                                if ((val == null || val.isEmpty) &&
-                                    selectedImage == null) {
-                                  return "Select a species or upload an image to scan";
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
+                    TextFormField(
+                      controller: speciesController,
+                      decoration: InputDecoration(
+                        labelText: "Species",
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(top: 12, left: 12),
+                          child: FaIcon(FontAwesomeIcons.fish, size: 20),
                         ),
-
+                        border: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
+                      ),
+                      validator: (val) {
+                        if ((val == null || val.isEmpty) &&
+                            selectedImage == null) {
+                          return "Enter a species name or scan using AI";
+                        }
+                        return null;
+                      },
+                    ),
                     if (scannedScientificName != null)
                       Padding(
-                        padding: const EdgeInsets.only(top: 6.0, left: 4.0),
+                        padding: const EdgeInsets.only(top: 6, left: 4),
                         child: Row(
                           children: [
                             const Icon(
                               Icons.info_outline,
                               size: 16,
-                              color: Colors.white54,
+                              color: Colors.grey,
                             ),
                             const SizedBox(width: 6),
                             Flexible(
                               child: Text(
                                 "Scientific name: $scannedScientificName",
                                 style: const TextStyle(
-                                  color: Colors.white54,
+                                  color: Colors.grey,
                                   fontSize: 13,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
@@ -338,134 +308,89 @@ class _AddCatchPageState extends State<AddCatchPage> {
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        // ✅ For Length & Weight (already side-by-side, just wrap in containers)
                         Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(12),
+                          child: TextFormField(
+                            controller: lengthController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: "Length (cm)",
+                              prefixIcon: Icon(Icons.straighten),
+                              border: OutlineInputBorder(),
                             ),
-                            child: TextFormField(
-                              controller: lengthController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: "Length (cm)",
-                                prefixIcon: Icon(Icons.straighten),
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                              validator:
-                                  (val) =>
-                                      val == null || val.isEmpty
-                                          ? "Enter length"
-                                          : null,
-                            ),
+                            validator:
+                                (val) =>
+                                    val == null || val.isEmpty
+                                        ? "Enter length"
+                                        : null,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(12),
+                          child: TextFormField(
+                            controller: weightController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: "Weight (kg)",
+                              prefixIcon: Icon(Icons.monitor_weight),
+                              border: OutlineInputBorder(),
                             ),
-                            child: TextFormField(
-                              controller: weightController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: "Weight (kg)",
-                                prefixIcon: Icon(Icons.monitor_weight),
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                              validator:
-                                  (val) =>
-                                      val == null || val.isEmpty
-                                          ? "Enter weight"
-                                          : null,
-                            ),
+                            validator:
+                                (val) =>
+                                    val == null || val.isEmpty
+                                        ? "Enter weight"
+                                        : null,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    // Location Picker Box
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(12),
+                    ListTile(
+                      leading: const Icon(Icons.location_on),
+                      title: Text(
+                        locationController.text.isEmpty
+                            ? "Select Location"
+                            : locationController.text,
                       ),
-                      child: ListTile(
-                        leading: const Icon(Icons.location_on),
-                        title: Text(
-                          locationController.text.isEmpty
-                              ? "Select Location"
-                              : locationController.text,
-                          style: TextStyle(
-                            color:
-                                locationController.text.isEmpty
-                                    ? Colors.grey
-                                    : Colors.black,
-                          ),
-                        ),
-                        onTap: _pickLocation,
-                      ),
+                      onTap: isSubmitting ? null : _pickLocation,
                     ),
-                    const SizedBox(height: 10),
-                    // Date & Time Side-by-Side
                     Row(
                       children: [
                         Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(12),
+                          child: ListTile(
+                            leading: const Icon(Icons.calendar_month),
+                            title: Text(
+                              DateFormat.yMMMMd().format(selectedDate),
                             ),
-                            child: ListTile(
-                              leading: const Icon(Icons.calendar_month),
-                              title: Text(
-                                DateFormat.yMMMMd().format(selectedDate),
-                              ),
-                              onTap: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: selectedDate,
-                                  firstDate: DateTime(2020),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (picked != null) {
-                                  setState(() => selectedDate = picked);
-                                }
-                              },
-                            ),
+                            onTap:
+                                isSubmitting
+                                    ? null
+                                    : () async {
+                                      final picked = await showDatePicker(
+                                        context: context,
+                                        initialDate: selectedDate,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime(2100),
+                                      );
+                                      if (picked != null)
+                                        setState(() => selectedDate = picked);
+                                    },
                           ),
                         ),
-                        const SizedBox(width: 12),
                         Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: ListTile(
-                              leading: const Icon(Icons.access_time),
-                              title: Text(selectedTime.format(context)),
-                              onTap: () async {
-                                final picked = await showTimePicker(
-                                  context: context,
-                                  initialTime: selectedTime,
-                                );
-                                if (picked != null) {
-                                  setState(() => selectedTime = picked);
-                                }
-                              },
-                            ),
+                          child: ListTile(
+                            leading: const Icon(Icons.access_time),
+                            title: Text(selectedTime.format(context)),
+                            onTap:
+                                isSubmitting
+                                    ? null
+                                    : () async {
+                                      final picked = await showTimePicker(
+                                        context: context,
+                                        initialTime: selectedTime,
+                                      );
+                                      if (picked != null)
+                                        setState(() => selectedTime = picked);
+                                    },
                           ),
                         ),
                       ],
@@ -473,28 +398,58 @@ class _AddCatchPageState extends State<AddCatchPage> {
                     SwitchListTile(
                       title: const Text("Caught & Released"),
                       value: isReleased,
-                      onChanged: (val) => setState(() => isReleased = val),
+                      onChanged:
+                          isSubmitting
+                              ? null
+                              : (val) => setState(() => isReleased = val),
                     ),
                     const SizedBox(height: 20),
-                    (isSubmitting || scanState is ScanLoading)
-                        ? const CircularProgressIndicator()
-                        : ElevatedButton.icon(
-                          onPressed:
-                              isSubmitting
-                                  ? null //disables the button
-                                  : () async {
-                                    setState(() => isSubmitting = true);
-                                    await _submit();
-                                    setState(() => isSubmitting = false);
-                                  },
-                          icon: const Icon(Icons.check),
-                          label: const Text("Submit"),
+                    ElevatedButton.icon(
+                      onPressed: isSubmitting || isScanning ? null : _submit,
+                      icon:
+                          isSubmitting
+                              ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.inversePrimary,
+                                ),
+                              )
+                              : Icon(
+                                Icons.check,
+                                color:
+                                    Theme.of(
+                                      context,
+                                    ).colorScheme.inversePrimary,
+                              ),
+                      label: Text(
+                        isSubmitting ? "Submitting..." : "Submit",
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
                         ),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            );
-          },
+            ),
+            if (isSubmitting || isScanning)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withOpacity(0.3),
+                  child: Center(
+                    child: LoadingAnimationWidget.dotsTriangle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      size: 70,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

@@ -15,7 +15,23 @@ class CatchDetailsPage extends StatelessWidget {
     final formattedTime = entry.catchTime.format(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Catch Details")),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'Catch Details',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
+        automaticallyImplyLeading: true,
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

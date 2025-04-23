@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/profile/presentation/components/user_tile.dart';
 import 'package:fyp/features/search/presentation/cubits/search_cubit.dart';
 import 'package:fyp/features/search/presentation/cubits/search_states.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -79,7 +80,12 @@ class _SearchPageState extends State<SearchPage> {
           // no users
           //loading
           else if (state is SearchLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: LoadingAnimationWidget.dotsTriangle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+                size: 70,
+              ),
+            );
           }
           //error
           else if (state is SearchError) {

@@ -5,6 +5,7 @@ import 'package:fyp/features/weather/domain/models/weather_model.dart';
 import 'package:fyp/features/weather/domain/services/weather_service.dart';
 import 'package:fyp/features/weather/presentation/components/metric_tile.dart';
 import 'package:intl/intl.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lottie/lottie.dart';
 import '../../presentation/components/weather_search.dart';
 import '../../presentation/components/weather_forecast_tile.dart';
@@ -264,7 +265,17 @@ class _WeatherPageState extends State<WeatherPage> {
                     ),
                   ],
                 ] else
-                  const Center(child: CircularProgressIndicator()),
+                  SizedBox(
+                    height:
+                        MediaQuery.of(context).size.height -
+                        190, // approximate full height minus top padding
+                    child: Center(
+                      child: LoadingAnimationWidget.dotsTriangle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        size: 70,
+                      ),
+                    ),
+                  ),
 
                 const SizedBox(height: 40),
               ],

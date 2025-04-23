@@ -54,13 +54,23 @@ class SOSConfirmationDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text("Cancel"),
+          child: Text(
+            "Cancel",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
         ),
         ElevatedButton(
           onPressed: () {
             Navigator.pop(context, true); // ✅ this must return `true`
           },
-          child: const Text("Send SOS"),
+          child: Text(
+            "Send SOS",
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+            ),
+          ),
         ),
       ],
     );

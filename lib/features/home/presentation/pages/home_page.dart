@@ -11,6 +11,7 @@ import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
 import 'package:fyp/features/profile/presentation/pages/profile_page.dart';
 import 'package:fyp/features/weather/presentation/pages/weather_page.dart';
 import 'package:fyp/features/notifications/presentation/pages/notification_page.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -84,71 +85,21 @@ class _HomePageState extends State<HomePage> {
     final profileImage = user?.photoURL;
 
     return AppBar(
-      title: Text(
-        "Home",
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.primary,
+      title: Padding(
+        padding: const EdgeInsets.only(left: 10.0),
+        child: Text(
+          "R e e l   B u d d y",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       ),
-      centerTitle: true,
+
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(15),
           bottomRight: Radius.circular(15),
-        ),
-      ),
-      automaticallyImplyLeading: false,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 12),
-        child: GestureDetector(
-          onTap: () async {
-            final uid = FirebaseAuth.instance.currentUser?.uid;
-            if (uid != null) {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ProfilePage(uid: uid)),
-              );
-
-              // ✅ This actually emits ProfileLoaded to update BlocBuilder
-              await context.read<ProfileCubit>().getUserProfile(uid);
-            }
-          },
-
-          child: BlocBuilder<ProfileCubit, ProfileState>(
-            builder: (context, state) {
-              if (state is ProfileLoaded) {
-                final profileImageUrl = state.profile.profileImageUrl;
-
-                if (profileImageUrl.isNotEmpty &&
-                    Uri.tryParse(profileImageUrl)?.hasAbsolutePath == true) {
-                  return CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage(profileImageUrl),
-                  );
-                } else {
-                  return CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Theme.of(context).colorScheme.tertiary,
-                    child: Icon(
-                      CupertinoIcons.person_fill,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  );
-                }
-              }
-
-              // While loading or failed
-              return CircleAvatar(
-                radius: 18,
-                backgroundColor: Theme.of(context).colorScheme.tertiary,
-                child: Icon(
-                  CupertinoIcons.person_fill,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              );
-            },
-          ),
         ),
       ),
 
@@ -177,7 +128,12 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<PostCubit, PostState>(
       builder: (context, state) {
         if (state is PostLoading || state is PostUploading) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: LoadingAnimationWidget.dotsTriangle(
+              color: Theme.of(context).colorScheme.inversePrimary,
+              size: 70,
+            ),
+          );
         } else if (state is PostLoaded) {
           final allPosts = state.posts;
 

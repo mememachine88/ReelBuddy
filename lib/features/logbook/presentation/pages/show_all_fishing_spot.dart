@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/maps/data/models/fishing_spots.dart';
 import 'package:fyp/features/logbook/data/firebase_logbook_repo.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ShowAllFishingSpot extends StatefulWidget {
   const ShowAllFishingSpot({super.key});
@@ -35,11 +36,32 @@ class _ShowAllFishingSpotState extends State<ShowAllFishingSpot> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Your Fishing Spots")),
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'Your Fishing Spots',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
+        automaticallyImplyLeading: true,
+      ),
       body: Stack(
         children: [
           userSpots.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(
+                child: LoadingAnimationWidget.dotsTriangle(
+                  color: Theme.of(context).colorScheme.inversePrimary,
+                  size: 70,
+                ),
+              )
               : GoogleMap(
                 onMapCreated: (controller) => mapController = controller,
                 initialCameraPosition: CameraPosition(

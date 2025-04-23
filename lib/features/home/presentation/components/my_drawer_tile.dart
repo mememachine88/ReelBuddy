@@ -23,7 +23,7 @@ class MyDrawerTile extends StatelessWidget {
         color:
             Theme.of(
               context,
-            ).colorScheme.tertiary, // Apply theme color to SVG icon
+            ).colorScheme.primary, // Apply theme color to SVG icon
       ),
       title: Text(
         title,
@@ -31,7 +31,7 @@ class MyDrawerTile extends StatelessWidget {
           color:
               Theme.of(
                 context,
-              ).colorScheme.tertiary, // Apply tertiary color to text
+              ).colorScheme.primary, // Apply tertiary color to text
           fontWeight: FontWeight.bold, // Optional: Make text bold for emphasis
         ),
       ),
