@@ -39,6 +39,8 @@ class _AddCatchPageState extends State<AddCatchPage> {
   String? scannedScientificName;
   bool isSubmitting = false;
   bool isScanning = false;
+  double? selectedLat;
+  double? selectedLng;
 
   Future<void> _pickImage() async {
     final image = await ImagePickerModal.show(context);
@@ -54,7 +56,11 @@ class _AddCatchPageState extends State<AddCatchPage> {
   Future<void> _pickLocation() async {
     final result = await LocationPickerModal.show(context);
     if (result != null && result['name'] != null) {
-      setState(() => locationController.text = result['name']);
+      setState(() {
+        locationController.text = result['name'];
+        selectedLat = result['lat'];
+        selectedLng = result['lng'];
+      });
     }
   }
 
@@ -152,6 +158,8 @@ class _AddCatchPageState extends State<AddCatchPage> {
         catchDate: selectedDate,
         catchTime: selectedTime,
         location: locationController.text,
+        latitude: selectedLat,
+        longitude: selectedLng,
         imageUrl: selectedImage?.path,
         isReleased: isReleased,
       );

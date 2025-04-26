@@ -9,6 +9,8 @@ class LogbookEntry {
   final DateTime catchDate;
   final TimeOfDay catchTime;
   final String location;
+  final double? latitude; // ✅ Added latitude
+  final double? longitude; // ✅ Added longitude
   final String? imageUrl;
   final bool isReleased;
 
@@ -21,6 +23,8 @@ class LogbookEntry {
     required this.catchDate,
     required this.catchTime,
     required this.location,
+    this.latitude, // ✅ Added
+    this.longitude, // ✅ Added
     this.imageUrl,
     required this.isReleased,
   });
@@ -35,6 +39,8 @@ class LogbookEntry {
       'catchDate': catchDate.toIso8601String(),
       'catchTime': '${catchTime.hour}:${catchTime.minute}',
       'location': location,
+      'latitude': latitude,
+      'longitude': longitude,
       'imageUrl': imageUrl,
       'isReleased': isReleased,
     };
@@ -54,10 +60,13 @@ class LogbookEntry {
         minute: int.tryParse(timeParts[1]) ?? 0,
       ),
       location: json['location'],
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
       imageUrl: json['imageUrl'],
       isReleased: json['isReleased'] ?? false,
     );
   }
+
   LogbookEntry copyWith({String? imageUrl}) {
     return LogbookEntry(
       id: id,
@@ -68,6 +77,8 @@ class LogbookEntry {
       catchDate: catchDate,
       catchTime: catchTime,
       location: location,
+      latitude: latitude,
+      longitude: longitude,
       imageUrl: imageUrl ?? this.imageUrl,
       isReleased: isReleased,
     );

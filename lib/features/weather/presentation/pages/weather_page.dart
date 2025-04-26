@@ -190,7 +190,7 @@ class _WeatherPageState extends State<WeatherPage> {
                           DateFormat('EEEE, MMM d').format(DateTime.now()),
                           style: TextStyle(
                             fontSize: 14,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Theme.of(context).colorScheme.inversePrimary,
                           ),
                         ),
                         const SizedBox(height: 8),

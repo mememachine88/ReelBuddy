@@ -67,7 +67,12 @@ class _EditProfilePage extends State<EditProfilePage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Cancel"),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -87,7 +92,12 @@ class _EditProfilePage extends State<EditProfilePage> {
                     );
                   }
                 },
-                child: const Text("Verify"),
+                child: Text(
+                  "Verify",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
               ),
             ],
           ),
@@ -112,36 +122,42 @@ class _EditProfilePage extends State<EditProfilePage> {
     final profileCubit = context.read<ProfileCubit>();
     final String uid = widget.user.uid;
     final imageMobilePath = kIsWeb ? null : imagePickedFile?.path;
+
     final String? newBio =
-        bioTextController.text.isNotEmpty ? bioTextController.text : null;
-    final String? newName =
-        nameTextController.text.isNotEmpty ? nameTextController.text : null;
-    final String? newGender =
-        (selectedGender != null && selectedGender!.trim().isNotEmpty)
-            ? selectedGender
-            : widget.user.gender;
-    final String? newPassword =
-        passwordTextController.text.isNotEmpty
-            ? passwordTextController.text
+        (bioTextController.text.trim() != widget.user.bio.trim())
+            ? bioTextController.text.trim()
             : null;
 
-    final shouldUpdate =
-        imagePickedFile != null ||
-        newBio != null ||
-        newName != null ||
-        newGender != null ||
-        newPassword != null;
+    final String? newName =
+        (nameTextController.text.trim() != widget.user.name.trim())
+            ? nameTextController.text.trim()
+            : null;
 
-    if (!shouldUpdate) {
+    final String? newGender =
+        (selectedGender != null &&
+                selectedGender!.trim().isNotEmpty &&
+                selectedGender != widget.user.gender)
+            ? selectedGender
+            : null;
+
+    final bool imageChanged = imagePickedFile != null;
+    final bool passwordChanged = passwordTextController.text.isNotEmpty;
+
+    final bool shouldUpdateProfile =
+        newBio != null || newName != null || newGender != null || imageChanged;
+    final bool shouldUpdatePassword = passwordChanged;
+
+    if (!shouldUpdateProfile && !shouldUpdatePassword) {
       Navigator.pop(context);
       return;
     }
-    //check password
-    if (passwordTextController.text != confirmPasswordController.text) {
+
+    if (passwordChanged &&
+        passwordTextController.text != confirmPasswordController.text) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Passwords do not match.")));
-      return; // Stop update if passwords mismatch
+      return;
     }
 
     final confirmed = await showDialog(
@@ -155,26 +171,70 @@ class _EditProfilePage extends State<EditProfilePage> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text("Cancel"),
+                child: Text(
+                  "Cancel",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text("Yes, update"),
+                child: Text(
+                  "Yes, update",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.inversePrimary,
+                  ),
+                ),
               ),
             ],
           ),
     );
 
-    if (confirmed == true) {
-      await profileCubit.updateProfile(
-        uid: uid,
-        newBio: newBio,
-        newName: newName,
-        newGender: newGender,
-        imageMobilePath: imageMobilePath,
+    if (confirmed != true) return;
+
+    try {
+      // 🖼️ Update profile
+      final updates = <String, dynamic>{};
+
+      if (newBio != null) updates['bio'] = newBio;
+      if (newName != null) updates['name'] = newName;
+      if (newGender != null) updates['gender'] = newGender;
+
+      if (imageMobilePath != null) {
+        final downloadUrl = await profileCubit.uploadProfileImage(
+          uid,
+          File(imageMobilePath),
+        );
+        updates['profileImageUrl'] = downloadUrl;
+      }
+
+      if (updates.isNotEmpty) {
+        await profileCubit.updateProfileData(uid, updates);
+      }
+
+      if (shouldUpdatePassword) {
+        final user = FirebaseAuth.instance.currentUser;
+        final email = user?.email ?? widget.user.email;
+        await reauthenticateAndChangePassword(
+          email,
+          currentPasswordController.text,
+          passwordTextController.text,
+        );
+      }
+
+      // 🚨 MOST IMPORTANT: fetch updated profile BEFORE popping
+      await profileCubit.fetchUserProfile(uid);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated successfully.")),
       );
 
-      await profileCubit.fetchUserProfile(uid);
+      Navigator.pop(context, true); // ✅ Now it pops cleanly with new data ready
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to update profile: ${e.toString()}")),
+      );
     }
   }
 
@@ -206,10 +266,11 @@ class _EditProfilePage extends State<EditProfilePage> {
     return BlocConsumer<ProfileCubit, ProfileState>(
       listener: (context, state) {
         if (state is ProfileLoaded) {
+          // ✅ REMOVE Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Profile updated successfully.")),
           );
-          Navigator.pop(context);
+          // DO NOTHING here. Pop is handled inside updateProfile().
         } else if (state is ProfileError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -218,6 +279,7 @@ class _EditProfilePage extends State<EditProfilePage> {
           );
         }
       },
+
       builder: (context, state) {
         if (state is ProfileLoading) {
           return Scaffold(
@@ -254,9 +316,7 @@ class _EditProfilePage extends State<EditProfilePage> {
             bottomRight: Radius.circular(15),
           ),
         ),
-        actions: [
-          IconButton(onPressed: updateProfile, icon: const Icon(Icons.upload)),
-        ],
+        automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(0),
@@ -284,7 +344,8 @@ class _EditProfilePage extends State<EditProfilePage> {
                               File(imagePickedFile!.path!),
                               fit: BoxFit.cover,
                             )
-                            : CachedNetworkImage(
+                            : (widget.user.profileImageUrl.isNotEmpty)
+                            ? CachedNetworkImage(
                               imageUrl: widget.user.profileImageUrl,
                               placeholder:
                                   (context, url) =>
@@ -295,7 +356,6 @@ class _EditProfilePage extends State<EditProfilePage> {
                                             ).colorScheme.inversePrimary,
                                         size: 70,
                                       ),
-
                               errorWidget:
                                   (context, url, error) => Icon(
                                     Icons.person,
@@ -303,6 +363,11 @@ class _EditProfilePage extends State<EditProfilePage> {
                                     color: Colors.grey.shade400,
                                   ),
                               fit: BoxFit.cover,
+                            )
+                            : Icon(
+                              Icons.person,
+                              size: 60,
+                              color: Colors.grey.shade400,
                             ),
                   ),
                   Positioned(
@@ -432,6 +497,32 @@ class _EditProfilePage extends State<EditProfilePage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: updateProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.inversePrimary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          textStyle: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text("Save Changes"),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

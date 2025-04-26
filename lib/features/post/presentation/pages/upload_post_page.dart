@@ -13,6 +13,9 @@ import 'package:fyp/features/post/domain/entities/post.dart';
 import 'package:fyp/features/post/presentation/components/location_picker.dart';
 import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 import 'package:fyp/features/post/presentation/cubits/post_states.dart';
+import 'package:fyp/features/profile/domain/entities/profile_user.dart';
+import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -31,12 +34,14 @@ class _UploadPostPageState extends State<UploadPostPage> {
   bool shareLocation = false;
   double? selectedLat;
   double? selectedLng;
+  String? profileImageUrl;
 
   //text controller ->caption
   final textController = TextEditingController();
 
   //current user
   AppUser? currentUser;
+  ProfileUser? profileUser;
   @override
   void initState() {
     super.initState();
@@ -44,9 +49,22 @@ class _UploadPostPageState extends State<UploadPostPage> {
   }
 
   //get current user
-  void getCurrentUser() {
+  void getCurrentUser() async {
     final authCubit = context.read<AuthCubit>();
-    currentUser = authCubit.currentUser;
+    final uid = authCubit.currentUser?.uid;
+
+    if (uid != null) {
+      final profileCubit = context.read<ProfileCubit>();
+      await profileCubit.fetchUserProfile(uid);
+
+      final profileState = profileCubit.state;
+      if (profileState is ProfileLoaded) {
+        setState(() {
+          profileUser = profileState.profile;
+          currentUser = profileState.profile;
+        });
+      }
+    }
   }
 
   //pick image
@@ -210,9 +228,19 @@ class _UploadPostPageState extends State<UploadPostPage> {
                         children: [
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
+                            backgroundImage:
+                                (profileUser != null &&
+                                        profileUser!.profileImageUrl.isNotEmpty)
+                                    ? NetworkImage(profileUser!.profileImageUrl)
+                                    : null,
+                            backgroundColor: Colors.grey,
+                            child:
+                                (profileUser == null ||
+                                        profileUser!.profileImageUrl.isEmpty)
+                                    ? const Icon(Icons.person, size: 30)
+                                    : null,
                           ),
+
                           const SizedBox(width: 20),
                           Text(
                             currentUser?.username ?? 'Unknown',

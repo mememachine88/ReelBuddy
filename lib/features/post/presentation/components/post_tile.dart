@@ -97,7 +97,7 @@ class _PostTileState extends State<PostTile> {
         final notification = AppNotification(
           id: '',
           type: 'like',
-          title: '❤️ New Like',
+          title: 'New Like',
           message: '${currentUser!.username} liked your post!',
           timestamp: DateTime.now(),
           isRead: false,
@@ -217,7 +217,7 @@ class _PostTileState extends State<PostTile> {
           senderUid: currentUser!.uid,
           senderUsername: currentUser!.username,
           senderProfileImageUrl: postUser?.profileImageUrl ?? '',
-          postId: widget.post.id, // ✅ Use postUser
+          postId: widget.post.id, //Use postUser
         );
 
         await context.read<NotificationCubit>().sendNotification(
@@ -249,7 +249,9 @@ class _PostTileState extends State<PostTile> {
           (context) => AlertDialog(
             title: Text(
               "Delete Post?",
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
             ),
             actions: [
               //cancel
@@ -258,7 +260,7 @@ class _PostTileState extends State<PostTile> {
                 child: Text(
                   "Cancel",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
               ),
@@ -272,7 +274,7 @@ class _PostTileState extends State<PostTile> {
                 child: Text(
                   "Delete",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).colorScheme.inversePrimary,
                   ),
                 ),
               ),

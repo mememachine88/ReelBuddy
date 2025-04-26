@@ -9,6 +9,7 @@ import 'package:fyp/features/sos/domain/entities/sos.dart';
 import 'package:fyp/features/sos/presentation/components/sos_alert_popup.dart';
 import 'package:fyp/features/sos/presentation/cubit/sos_cubit.dart';
 import 'package:fyp/features/sos/presentation/cubit/sos_state.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class NotificationTile extends StatelessWidget {
   final AppNotification notification;
@@ -20,7 +21,7 @@ class NotificationTile extends StatelessWidget {
       // Get all SOS alerts from Firestore for this user (receiver)
       final uid = notification.senderUid;
 
-      // 🧠 You probably already have a fetch method like this:
+      // You probably already have a fetch method like this:
       // context.read<SOSCubit>().loadReceivedAlerts(currentUser.uid);
 
       final cubit = context.read<SOSCubit>();
@@ -33,23 +34,21 @@ class NotificationTile extends StatelessWidget {
         );
 
         if (matchingAlert.id.isNotEmpty) {
-          // 🧭 Show the popup
+          //Show the popup
           showDialog(
             context: context,
             builder: (_) => SOSAlertPopup(alert: matchingAlert),
           );
         } else {
-          // ❌ No matching alert
+          //No matching alert
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("❌ No recent SOS alert found.")),
+            const SnackBar(content: Text("No recent SOS alert found.")),
           );
         }
       } else {
         // Not loaded
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("⚠ SOS alerts not available right now."),
-          ),
+          const SnackBar(content: Text("SOS alerts not available right now.")),
         );
       }
     } catch (e) {
@@ -63,15 +62,21 @@ class NotificationTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: () => _handleTap(context),
+
       leading: CircleAvatar(
-        backgroundImage:
-            (notification.senderProfileImageUrl.isNotEmpty)
-                ? NetworkImage(notification.senderProfileImageUrl)
-                : null,
-        child:
-            (notification.senderProfileImageUrl.isEmpty)
-                ? const Icon(Icons.person)
-                : null,
+        radius: 24,
+        backgroundColor: Colors.grey[200],
+        child: ClipOval(
+          child: CachedNetworkImage(
+            imageUrl: notification.senderProfileImageUrl,
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const Icon(Icons.person, size: 24),
+            errorWidget:
+                (context, url, error) => const Icon(Icons.person, size: 24),
+          ),
+        ),
       ),
 
       title: Text(notification.title),
@@ -112,7 +117,7 @@ class NotificationTile extends StatelessWidget {
     print(postId);
     if (postId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("⚠ Missing post information.")),
+        const SnackBar(content: Text("Missing post information.")),
       );
       return;
     }
@@ -130,7 +135,7 @@ class NotificationTile extends StatelessWidget {
       } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("❌ This post was deleted or is no longer available."),
+            content: Text("This post was deleted or is no longer available."),
           ),
         );
       }

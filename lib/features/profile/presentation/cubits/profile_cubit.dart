@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/profile/domain/repos/profile_repo.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
@@ -82,6 +86,34 @@ class ProfileCubit extends Cubit<ProfileState> {
       await profileRepo.toggleFollow(currentUid, targetUid);
     } catch (e) {
       emit(ProfileError("Error toggeling follow: $e"));
+    }
+  }
+
+  Future<void> updateProfileData(
+    String uid,
+    Map<String, dynamic> updates,
+  ) async {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .update(updates);
+  }
+
+  Future<String> uploadProfileImage(String uid, File imageFile) async {
+    try {
+      final storageRef = FirebaseStorage.instance.ref().child(
+        'profile_images/$uid.jpg',
+      ); // Save it under 'profile_images/uid.jpg'
+
+      final uploadTask = await storageRef.putFile(imageFile);
+
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl; // ✅ Always return download URL
+    } catch (e) {
+      print("Error uploading profile image: $e");
+      throw Exception(
+        "Image upload failed",
+      ); // ✅ Throw exception if upload fails
     }
   }
 }

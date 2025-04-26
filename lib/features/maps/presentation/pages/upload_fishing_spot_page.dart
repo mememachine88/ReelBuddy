@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/post/presentation/components/image_picker.dart';
+import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
+import 'package:fyp/features/profile/presentation/cubits/profile_states.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,6 +13,7 @@ import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:fyp/features/maps/data/models/fishing_spots.dart';
 import 'package:fyp/features/maps/presentation/cubit/map_cubit.dart';
 import 'package:fyp/features/post/presentation/components/location_picker.dart';
+import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 
 class UploadFishingSpotPage extends StatefulWidget {
   const UploadFishingSpotPage({super.key});
@@ -27,6 +30,7 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
   double? selectedLng;
   final textController = TextEditingController();
   AppUser? currentUser;
+  ProfileUser? profileUser;
 
   @override
   void initState() {
@@ -34,9 +38,22 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
     getCurrentUser();
   }
 
-  void getCurrentUser() {
+  void getCurrentUser() async {
     final authCubit = context.read<AuthCubit>();
-    currentUser = authCubit.currentUser;
+    final uid = authCubit.currentUser?.uid;
+
+    if (uid != null) {
+      final profileCubit = context.read<ProfileCubit>();
+      await profileCubit.fetchUserProfile(uid);
+
+      final profileState = profileCubit.state;
+      if (profileState is ProfileLoaded) {
+        setState(() {
+          profileUser = profileState.profile;
+          currentUser = profileState.profile;
+        });
+      }
+    }
   }
 
   Future<void> pickImage() async {
@@ -155,9 +172,18 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
                     children: [
                       Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 30,
+                            backgroundImage:
+                                (profileUser?.profileImageUrl.isNotEmpty ==
+                                        true)
+                                    ? NetworkImage(profileUser!.profileImageUrl)
+                                    : null,
                             backgroundColor: Colors.grey,
+                            child:
+                                (profileUser?.profileImageUrl.isEmpty ?? true)
+                                    ? const Icon(Icons.person, size: 30)
+                                    : null,
                           ),
                           const SizedBox(width: 20),
                           Text(

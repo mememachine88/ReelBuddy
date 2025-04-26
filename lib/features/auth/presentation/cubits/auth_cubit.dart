@@ -8,6 +8,7 @@ import 'package:fyp/features/auth/domain/entities/app_user.dart';
 import 'package:fyp/features/auth/domain/repo/auth_repo.dart';
 import 'package:fyp/features/auth/presentation/cubits/auth_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepo authRepo;
@@ -15,7 +16,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   AuthCubit({required this.authRepo}) : super(AuthInitial());
 
-  // ✅ Correct getter
+  //Correct getter
   AppUser? get currentUser => _currentUser;
 
   // Check if the user is already authenticated

@@ -50,14 +50,18 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    profileCubit.fetchUserProfile(widget.uid);
+    fetchProfile();
+  }
+
+  void fetchProfile() {
+    context.read<ProfileCubit>().fetchUserProfile(widget.uid);
   }
 
   @override
   void didUpdateWidget(covariant ProfilePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.uid != widget.uid) {
-      profileCubit.fetchUserProfile(widget.uid);
+      fetchProfile();
     }
   }
 
@@ -83,7 +87,7 @@ class _ProfilePageState extends State<ProfilePage> {
         final notification = AppNotification(
           id: '',
           type: 'follow',
-          title: '👤 New Follower',
+          title: 'New Follower',
           message: '${currentUser!.username} started following you!',
           timestamp: DateTime.now(),
           isRead: false,
@@ -259,17 +263,26 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child:
                                     isOwnPost
                                         ? ElevatedButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder:
-                                                    (_) => EditProfilePage(
-                                                      user: user,
-                                                    ),
-                                              ),
-                                            );
+                                          onPressed: () async {
+                                            final updated =
+                                                await Navigator.push<bool>(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (_) => EditProfilePage(
+                                                          user: user,
+                                                        ),
+                                                  ),
+                                                );
+
+                                            if (updated == true) {
+                                              // ✅ Force clear and refetch
+                                              await context
+                                                  .read<ProfileCubit>()
+                                                  .fetchUserProfile(widget.uid);
+                                            }
                                           },
+
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor:
                                                 Theme.of(
@@ -327,7 +340,6 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: SizedBox(
                                 height: 46,
                                 child: ElevatedButton.icon(
-                                  icon: const Icon(Icons.bar_chart),
                                   label: const Text("View Stats"),
                                   onPressed: () async {
                                     final logbookCubit =

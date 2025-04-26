@@ -1,8 +1,7 @@
-// logbook/presentation/pages/catch_details_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:fyp/features/logbook/domain/entities/logbook_entry.dart';
 import 'package:intl/intl.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CatchDetailsPage extends StatelessWidget {
   final LogbookEntry entry;
@@ -92,10 +91,27 @@ class CatchDetailsPage extends StatelessWidget {
 
                   // 📍 Location
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.location_on),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(entry.location)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(entry.location),
+                            if (entry.latitude != null &&
+                                entry.longitude != null)
+                              Text(
+                                '(${entry.latitude!.toStringAsFixed(5)}, ${entry.longitude!.toStringAsFixed(5)})',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
 
@@ -109,6 +125,35 @@ class CatchDetailsPage extends StatelessWidget {
                         SizedBox(width: 8),
                         Text("Caught & Released"),
                       ],
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  // 🗺️ Mini Map
+                  if (entry.latitude != null && entry.longitude != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        height: 200,
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(entry.latitude!, entry.longitude!),
+                            zoom: 14,
+                          ),
+                          markers: {
+                            Marker(
+                              markerId: const MarkerId('catch_location'),
+                              position: LatLng(
+                                entry.latitude!,
+                                entry.longitude!,
+                              ),
+                            ),
+                          },
+                          myLocationEnabled: false,
+                          zoomControlsEnabled: false,
+                          liteModeEnabled: true, // ✅ Enable lightweight map
+                        ),
+                      ),
                     ),
                 ],
               ),
