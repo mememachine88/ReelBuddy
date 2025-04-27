@@ -62,15 +62,16 @@ class StatsPage extends StatelessWidget {
         ),
         automaticallyImplyLeading: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Highlights Box
+            // 📊 Highlights
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -81,37 +82,23 @@ class StatsPage extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                   ),
                   const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      const Icon(Icons.height, size: 26),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Longest: ${longest.species} — ${longest.length.toStringAsFixed(1)} cm",
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
+                  _buildHighlightRow(
+                    Icons.height,
+                    "Longest",
+                    "${longest.species} — ${longest.length.toStringAsFixed(1)} cm",
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.monitor_weight, size: 26),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Heaviest: ${heaviest.species} — ${heaviest.weight.toStringAsFixed(1)} kg",
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
+                  _buildHighlightRow(
+                    Icons.monitor_weight,
+                    "Heaviest",
+                    "${heaviest.species} — ${heaviest.weight.toStringAsFixed(1)} kg",
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.star, size: 26, color: Colors.orange),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Most Caught: ${mostCaught.key} (${mostCaught.value}x)",
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ],
+                  _buildHighlightRow(
+                    Icons.star,
+                    "Most Caught",
+                    "${mostCaught.key} (${mostCaught.value}x)",
+                    iconColor: Colors.orange,
                   ),
                 ],
               ),
@@ -119,11 +106,11 @@ class StatsPage extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🐠 Donut Chart
+            // 🎯 Pie Chart Section
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Column(
@@ -184,7 +171,7 @@ class StatsPage extends StatelessWidget {
                                 Flexible(
                                   child: Text(
                                     label,
-                                    style: const TextStyle(fontSize: 16),
+                                    style: const TextStyle(fontSize: 14),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -199,6 +186,23 @@ class StatsPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHighlightRow(
+    IconData icon,
+    String label,
+    String value, {
+    Color? iconColor,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 26, color: iconColor),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text("$label: $value", style: const TextStyle(fontSize: 15)),
+        ),
+      ],
     );
   }
 

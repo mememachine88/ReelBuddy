@@ -143,11 +143,6 @@ class _JournalPageState extends State<JournalPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: _navigateToAddCatch,
-                          icon: Icon(Icons.add_photo_alternate),
-                          label: Text("Add Your First Catch"),
-                        ),
                       ],
                     ),
                   );
