@@ -509,27 +509,16 @@ class _PostTileState extends State<PostTile> {
           //Comment section
           BlocBuilder<PostCubit, PostState>(
             builder: (context, state) {
+              List<Comment> comments = [];
+
               if (state is PostLoaded) {
                 final post = state.posts.firstWhere(
                   (post) => post.id == widget.post.id,
-                  orElse: () => widget.post, // Ensure a default post
+                  orElse: () => widget.post,
                 );
-
-                if (post.comments.isEmpty) {
-                  return Center(child: Text("No comments yet"));
-                }
-
-                return ListView.builder(
-                  itemCount: post.comments.length,
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemBuilder: (context, index) {
-                    //get individual comment
-                    final comment = post.comments[index];
-
-                    return CommentTile(comment: comment);
-                  },
-                );
+                comments = post.comments;
+              } else if (state is CommentsLoaded) {
+                comments = state.comments;
               } else if (state is PostLoading) {
                 return Center(
                   child: LoadingAnimationWidget.dotsTriangle(
@@ -539,11 +528,38 @@ class _PostTileState extends State<PostTile> {
                 );
               } else if (state is PostError) {
                 return Center(child: Text(state.message));
-              } else {
-                return Center(child: Text("No comments yet")); // Default case
               }
+
+              if (comments.isEmpty) {
+                return Center(child: Text("No comments yet"));
+              }
+
+              return ListView.builder(
+                itemCount: comments.length,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final comment = comments[index];
+                  return CommentTile(
+                    comment: comment,
+                    onDelete: () async {
+                      await context.read<PostCubit>().deleteComment(
+                        widget.post.id,
+                        comment.id,
+                      );
+
+                      setState(() {
+                        widget.post.comments.removeWhere(
+                          (c) => c.id == comment.id,
+                        );
+                      });
+                    },
+                  );
+                },
+              );
             },
           ),
+
           SizedBox(height: 10),
         ],
       ),

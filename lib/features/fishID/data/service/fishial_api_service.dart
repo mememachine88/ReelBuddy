@@ -17,7 +17,7 @@ class FishialApiService {
 
   String? _accessToken;
 
-  // 🔑 1. Get Access Token
+  //  Get Access Token
   Future<String?> getAccessToken() async {
     final response = await http.post(
       Uri.parse("https://api-users.fishial.ai/v1/auth/token"),
@@ -30,12 +30,12 @@ class FishialApiService {
       _accessToken = token;
       return token;
     } else {
-      print("❌ Failed to fetch access token: ${response.body}");
+      print("Failed to fetch access token: ${response.body}");
       return null;
     }
   }
 
-  // 📄 2. Generate File Metadata
+  //  Generate File Metadata
   Future<Map<String, dynamic>> getFileMetadata(File file) async {
     final bytes = await file.readAsBytes();
     final fileName = file.path.split('/').last;
@@ -52,7 +52,7 @@ class FishialApiService {
     };
   }
 
-  // 🔗 3. Get Upload URL
+  //  Get Upload URL
   Future<Map<String, dynamic>?> requestUploadUrl({
     required String fileName,
     required String mimeType,
@@ -81,12 +81,12 @@ class FishialApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      print("❌ Upload URL request failed: ${response.body}");
+      print("Upload URL request failed: ${response.body}");
       return null;
     }
   }
 
-  // ☁️ 4. Upload Image
+  // Upload Image
   Future<bool> uploadImageToUrl({
     required String uploadUrl,
     required Map<String, String> headers,
@@ -100,7 +100,7 @@ class FishialApiService {
     return response.statusCode == 200;
   }
 
-  // 🧠 5. Perform Fish Detection
+  // Perform Fish Detection
   Future<Map<String, dynamic>?> predictFish({required String signedId}) async {
     if (_accessToken == null) return null;
 
@@ -112,7 +112,7 @@ class FishialApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      print("❌ Prediction failed: ${response.body}");
+      print("Prediction failed: ${response.body}");
       return null;
     }
   }

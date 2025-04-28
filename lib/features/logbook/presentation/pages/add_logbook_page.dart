@@ -42,6 +42,7 @@ class _AddCatchPageState extends State<AddCatchPage> {
   double? selectedLat;
   double? selectedLng;
 
+  //pick image function
   Future<void> _pickImage() async {
     final image = await ImagePickerModal.show(context);
     if (image != null) {
@@ -53,6 +54,7 @@ class _AddCatchPageState extends State<AddCatchPage> {
     }
   }
 
+  //pick location
   Future<void> _pickLocation() async {
     final result = await LocationPickerModal.show(context);
     if (result != null && result['name'] != null) {
@@ -64,6 +66,7 @@ class _AddCatchPageState extends State<AddCatchPage> {
     }
   }
 
+  //Scan Image and fill text box
   Future<void> _scanImage() async {
     if (selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(

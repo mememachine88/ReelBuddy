@@ -64,6 +64,21 @@ class FirebasePostRepo implements PostRepo {
   }
 
   @override
+  Future<List<Comment>> fetchComments(String postId) async {
+    try {
+      final postDoc = await postCollection.doc(postId).get();
+      if (postDoc.exists) {
+        final post = Post.fromJson(postDoc.data() as Map<String, dynamic>);
+        return post.comments; // simply return the comments array
+      } else {
+        throw Exception("Post not found");
+      }
+    } catch (e) {
+      throw Exception("Error fetching comments: $e");
+    }
+  }
+
+  @override
   Future<void> toggleLikePost(String postId, String uid) async {
     try {
       //get post document from firestore

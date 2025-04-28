@@ -79,8 +79,30 @@ class PostCubit extends Cubit<PostState> {
   Future<void> deleteComment(String postId, String commentId) async {
     try {
       await postRepo.deleteComment(postId, commentId);
+
+      // After delete, update local state immediately if comments are loaded
+      if (state is CommentsLoaded) {
+        final currentComments = (state as CommentsLoaded).comments;
+
+        final updatedComments =
+            currentComments
+                .where((comment) => comment.id != commentId)
+                .toList();
+
+        emit(CommentsLoaded(updatedComments));
+      }
     } catch (e) {
       emit(PostError("Error deleting comment: $e"));
+    }
+  }
+
+  Future<void> fetchComments(String postId) async {
+    try {
+      emit(PostLoading()); // Or CommentsLoading if you have a separate state
+      final comments = await postRepo.fetchComments(postId);
+      emit(CommentsLoaded(comments));
+    } catch (e) {
+      emit(PostError("Failed to fetch comments: $e"));
     }
   }
 }

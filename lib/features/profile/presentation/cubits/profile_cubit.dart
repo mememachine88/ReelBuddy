@@ -111,9 +111,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       return downloadUrl; // ✅ Always return download URL
     } catch (e) {
       print("Error uploading profile image: $e");
-      throw Exception(
-        "Image upload failed",
-      ); // ✅ Throw exception if upload fails
+      throw Exception("Image upload failed"); // Throw exception if upload fails
     }
   }
 }

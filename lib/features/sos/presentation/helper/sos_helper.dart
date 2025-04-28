@@ -39,11 +39,11 @@ class SOSHelper {
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("📍 SOS sent to your followers")),
+          const SnackBar(content: Text("SOS sent to your followers")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("⚠ Could not fetch user profile")),
+          const SnackBar(content: Text("Could not fetch user profile")),
         );
       }
     } catch (e) {

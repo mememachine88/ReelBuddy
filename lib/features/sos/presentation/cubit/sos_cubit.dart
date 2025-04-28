@@ -8,19 +8,20 @@ class SOSCubit extends Cubit<SOSState> {
   final SOSRepo sosRepo;
 
   SOSCubit(this.sosRepo) : super(SOSInitial());
+  //send sos Function
 
   Future<void> sendSOS(SOSAlert alert, List<String> followerUids) async {
-    print("🔥 sendSOS called");
-    print("👉 Followers: $followerUids");
-    print("🧾 Alert Data: ${alert.toJson()}");
+    print("sendSOS called");
+    print("Followers: $followerUids");
+    print("Alert Data: ${alert.toJson()}");
 
     try {
       emit(SOSLoading());
       await sosRepo.sendSOSAlert(alert, followerUids);
       emit(SOSSuccess());
-      print("✅ SOS sent successfully");
+      print("SOS sent successfully");
     } catch (e) {
-      print("❌ SOS send error: $e");
+      print("SOS send error: $e");
       emit(SOSError(e.toString()));
     }
   }

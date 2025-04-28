@@ -8,6 +8,8 @@ import '../../data/models/tackle_shop.dart';
 class MapService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  //find nearby tackleshop using API
+
   Future<List<TackleShop>> fetchNearbyTackleShops(
     double lat,
     double lng,
@@ -34,6 +36,8 @@ class MapService {
         .toList();
   }
 
+  //add a fishing spot
+
   Future<void> addFishingSpot(FishingSpot spot) async {
     await _firestore.collection('fishing_spots').add({
       'description': spot.description,
@@ -45,6 +49,7 @@ class MapService {
     });
   }
 
+  //fetch fishing spot from firebase
   Future<List<FishingSpot>> fetchFishingSpots() async {
     final snapshot = await _firestore.collection('fishing_spots').get();
     return snapshot.docs.map((doc) {
@@ -59,7 +64,7 @@ class MapService {
             data['imageBytes'] != null
                 ? base64Decode(data['imageBytes'])
                 : null,
-        username: data['username'] ?? 'Anonymous', // ✅ NEW
+        username: data['username'] ?? 'Anonymous',
       );
     }).toList();
   }

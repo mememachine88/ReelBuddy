@@ -38,6 +38,7 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
     getCurrentUser();
   }
 
+  //gets current user uid and data
   void getCurrentUser() async {
     final authCubit = context.read<AuthCubit>();
     final uid = authCubit.currentUser?.uid;
@@ -56,6 +57,7 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
     }
   }
 
+  //pick image function lets users crop and select image
   Future<void> pickImage() async {
     final picked = await ImagePickerModal.show(context);
     if (picked != null) {
@@ -90,6 +92,7 @@ class _UploadFishingSpotPageState extends State<UploadFishingSpotPage> {
     }
   }
 
+  //upload fishing spot function
   void uploadFishingSpot() {
     if (textController.text.isEmpty ||
         selectedLocation == null ||

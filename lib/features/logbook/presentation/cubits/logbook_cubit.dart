@@ -17,6 +17,7 @@ class LogbookCubit extends Cubit<LogbookState> {
       emit(LogbookError("Failed to load logbook: $e"));
     }
   }
+  //Add fiishing Entry
 
   Future<void> addEntry(LogbookEntry entry) async {
     emit(LogbookSubmitting()); //Emit submitting instead of loading

@@ -14,6 +14,7 @@ class MapCubit extends Cubit<MapState> {
   MapCubit(this._mapService)
     : super(MapState(mode: MapMode.tackle, markers: {}, fishingSpots: []));
 
+  //loads tackle shop in 5 km radius
   Future<void> loadTackleShops(LatLng userLocation) async {
     final allShops = await _mapService.fetchNearbyTackleShops(
       userLocation.latitude,

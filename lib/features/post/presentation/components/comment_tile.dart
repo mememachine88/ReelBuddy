@@ -7,7 +7,8 @@ import 'package:fyp/features/post/presentation/cubits/post_cubit.dart';
 
 class CommentTile extends StatefulWidget {
   final Comment comment;
-  const CommentTile({super.key, required this.comment});
+  final VoidCallback onDelete;
+  const CommentTile({super.key, required this.comment, required this.onDelete});
 
   @override
   State<CommentTile> createState() => _CommentTileState();
@@ -45,7 +46,6 @@ class _CommentTileState extends State<CommentTile> {
               ),
             ),
             actions: [
-              //cancel button
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(
@@ -55,14 +55,9 @@ class _CommentTileState extends State<CommentTile> {
                   ),
                 ),
               ),
-
-              //delete button
               TextButton(
-                onPressed: () {
-                  context.read<PostCubit>().deleteComment(
-                    widget.comment.postId,
-                    widget.comment.id,
-                  );
+                onPressed: () async {
+                  widget.onDelete(); // 👈 Call onDelete here
                   Navigator.of(context).pop();
                 },
                 child: Text(

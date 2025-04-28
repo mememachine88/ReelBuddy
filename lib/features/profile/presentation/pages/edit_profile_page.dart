@@ -6,6 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fyp/features/auth/presentation/components/my_text_field.dart';
 import 'package:fyp/features/auth/presentation/components/password_strength.dart';
+import 'package:fyp/features/auth/presentation/cubits/auth_cubit.dart';
+import 'package:fyp/features/auth/presentation/cubits/auth_states.dart';
+import 'package:fyp/features/auth/presentation/pages/auth_page.dart';
+import 'package:fyp/features/auth/presentation/pages/login_page.dart';
 import 'package:fyp/features/post/presentation/components/image_picker.dart';
 import 'package:fyp/features/profile/domain/entities/profile_user.dart';
 import 'package:fyp/features/profile/presentation/cubits/profile_cubit.dart';
@@ -30,6 +34,7 @@ class _EditProfilePage extends State<EditProfilePage> {
   final confirmPasswordController = TextEditingController();
   final currentPasswordController = TextEditingController();
   bool isPasswordVerified = false;
+  bool _successSnackbarShown = false;
 
   String? selectedGender;
   double passwordStrength = 0.0;
@@ -49,7 +54,7 @@ class _EditProfilePage extends State<EditProfilePage> {
   }
 
   Future<bool> showPasswordVerificationDialog() async {
-    final currentPasswordController = TextEditingController();
+    final tempPasswordController = TextEditingController();
     final user = FirebaseAuth.instance.currentUser;
 
     final confirmed = await showDialog<bool>(
@@ -58,7 +63,7 @@ class _EditProfilePage extends State<EditProfilePage> {
           (context) => AlertDialog(
             title: const Text("Verify Password"),
             content: TextField(
-              controller: currentPasswordController,
+              controller: tempPasswordController,
               obscureText: true,
               decoration: const InputDecoration(
                 hintText: "Enter current password",
@@ -79,9 +84,14 @@ class _EditProfilePage extends State<EditProfilePage> {
                   try {
                     final credential = EmailAuthProvider.credential(
                       email: widget.user.email,
-                      password: currentPasswordController.text,
+                      password: tempPasswordController.text,
                     );
                     await user?.reauthenticateWithCredential(credential);
+
+                    // 🛠 Save the verified password into real currentPasswordController
+                    currentPasswordController.text =
+                        tempPasswordController.text;
+
                     Navigator.of(context).pop(true);
                   } catch (e) {
                     Navigator.of(context).pop(false);
@@ -120,6 +130,7 @@ class _EditProfilePage extends State<EditProfilePage> {
   // Attempt to update profile after confirmation
   void updateProfile() async {
     final profileCubit = context.read<ProfileCubit>();
+    final authCubit = context.read<AuthCubit>();
     final String uid = widget.user.uid;
     final imageMobilePath = kIsWeb ? null : imagePickedFile?.path;
 
@@ -194,7 +205,6 @@ class _EditProfilePage extends State<EditProfilePage> {
     if (confirmed != true) return;
 
     try {
-      // 🖼️ Update profile
       final updates = <String, dynamic>{};
 
       if (newBio != null) updates['bio'] = newBio;
@@ -209,6 +219,7 @@ class _EditProfilePage extends State<EditProfilePage> {
         updates['profileImageUrl'] = downloadUrl;
       }
 
+      // Update Firestore profile info
       if (updates.isNotEmpty) {
         await profileCubit.updateProfileData(uid, updates);
       }
@@ -216,21 +227,43 @@ class _EditProfilePage extends State<EditProfilePage> {
       if (shouldUpdatePassword) {
         final user = FirebaseAuth.instance.currentUser;
         final email = user?.email ?? widget.user.email;
+
         await reauthenticateAndChangePassword(
           email,
           currentPasswordController.text,
           passwordTextController.text,
         );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Password updated. Please log in again."),
+          ),
+        );
+
+        if (user != null) {
+          await user.reload(); // Refresh user session
+        }
+        await FirebaseAuth.instance.signOut(); // Sign out
+        context.read<AuthCubit>().emit(
+          Unauthenticated(),
+        ); // Force state unauthenticated
+
+        // 🛠 Go to AuthPage (Login/Register toggle page)
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthPage()),
+          (route) => false, // Remove all previous pages
+        );
+
+        return;
       }
 
-      // 🚨 MOST IMPORTANT: fetch updated profile BEFORE popping
-      await profileCubit.fetchUserProfile(uid);
-
+      // After profile info update (but no password change)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profile updated successfully.")),
       );
 
-      Navigator.pop(context, true); // ✅ Now it pops cleanly with new data ready
+      Navigator.pop(context, true); // pop back
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to update profile: ${e.toString()}")),
@@ -265,12 +298,11 @@ class _EditProfilePage extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileCubit, ProfileState>(
       listener: (context, state) {
-        if (state is ProfileLoaded) {
-          // ✅ REMOVE Navigator.pop(context);
+        if (!_successSnackbarShown && state is ProfileLoaded) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Profile updated successfully.")),
           );
-          // DO NOTHING here. Pop is handled inside updateProfile().
+          _successSnackbarShown = true; // ✅ Mark as shown
         } else if (state is ProfileError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
